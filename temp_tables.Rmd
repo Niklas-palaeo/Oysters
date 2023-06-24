@@ -1,0 +1,91 @@
+---
+title: "Table"
+author: "Niklas Hausmann"
+date: '2023-05-02'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(here)
+library(magrittr)
+```
+# Data
+```{r}
+Strat_sites_stats <- readRDS(here("data","Strat_sites_stats.rds"))
+```
+
+# table
+```{r}
+
+library(flextable)
+
+# Plain table
+ft_plain <- flextable::flextable(Strat_sites_stats)
+# ft_plain <- set_formatter(ft_plain,)
+ft_plain
+
+# Table with striped rows
+ft_striped <- theme_striped(ft_plain, bg = "white", odd = "gray90")
+ft_striped
+
+# Table with striped rows and colored text (based on values)
+ft_colored <- ft_plain %>%
+  color(i = ~Standardized_Coeff_Age > 0, j = c("Standardized_Coeff_Age", "Standardized_Coeff_Residuals"), color = "blue") %>%
+  color(i = ~Standardized_Coeff_Age <= 0, j = c("Standardized_Coeff_Age", "Standardized_Coeff_Residuals"), color = "red")
+ft_colored
+
+```
+
+
+# Add stratigraphic information to Brief_Res Visborg 3933
+```{r}
+
+Brief_Res <- Brief_Res %>% 
+  mutate(grid_square = if_else(str_detect(site_ref_and_shell_no, "V.6.")&cultural_epoch=="Funnel Beaker", "1",
+                          if_else(str_detect(site_ref_and_shell_no, "V.7.")&cultural_epoch=="Funnel Beaker", "1",
+                          if_else(str_detect(site_ref_and_shell_no, "V.8.")&cultural_epoch=="Funnel Beaker", "2",
+                          if_else(str_detect(site_ref_and_shell_no, "V.9.")&cultural_epoch=="Funnel Beaker", "2",
+                          if_else(str_detect(site_ref_and_shell_no, "V.10.")&cultural_epoch=="Funnel Beaker", "2",
+                          if_else(str_detect(site_ref_and_shell_no, "V.11.")&cultural_epoch=="Funnel Beaker", "3",
+                          if_else(str_detect(site_ref_and_shell_no, "V.12.")&cultural_epoch=="Funnel Beaker", "3a",
+                          if_else(str_detect(site_ref_and_shell_no, "V.13.")&cultural_epoch=="Funnel Beaker", "3a",
+                          if_else(str_detect(site_ref_and_shell_no, "V.14.")&cultural_epoch=="Funnel Beaker", "4",
+                          if_else(str_detect(site_ref_and_shell_no, "V.15.")&cultural_epoch=="Funnel Beaker", "4",
+                          if_else(str_detect(site_ref_and_shell_no, "V.16.")&cultural_epoch=="Funnel Beaker", "4a",
+                          if_else(str_detect(site_ref_and_shell_no, "V.17.")&cultural_epoch=="Funnel Beaker", "4a",
+                          if_else(str_detect(site_ref_and_shell_no, "V.18.")&cultural_epoch=="Funnel Beaker", "4a",
+                          if_else(str_detect(site_ref_and_shell_no, "V.19.")&cultural_epoch=="Funnel Beaker", "4a",
+                          if_else(str_detect(site_ref_and_shell_no, "V.20.")&cultural_epoch=="Funnel Beaker", "5",
+                          if_else(str_detect(site_ref_and_shell_no, "V.21.")&cultural_epoch=="Funnel Beaker", "5",
+                          if_else(str_detect(site_ref_and_shell_no, "V.21a.")&cultural_epoch=="Funnel Beaker", "5",
+                          if_else(str_detect(site_ref_and_shell_no, "V.22.")&cultural_epoch=="Funnel Beaker", "5",
+                          if_else(str_detect(site_ref_and_shell_no, "V.23A.")&cultural_epoch=="Funnel Beaker", "5",
+                          if_else(str_detect(site_ref_and_shell_no, "V.23B.")&cultural_epoch=="Funnel Beaker", "5",
+                          grid_square)))))))))))))))))))),
+        layer = if_else(str_detect(site_ref_and_shell_no, "V.6.")&cultural_epoch=="Funnel Beaker", "6",
+                 if_else(str_detect(site_ref_and_shell_no, "V.7.")&cultural_epoch=="Funnel Beaker", "7",
+                 if_else(str_detect(site_ref_and_shell_no, "V.8.")&cultural_epoch=="Funnel Beaker", "8",
+                 if_else(str_detect(site_ref_and_shell_no, "V.9.")&cultural_epoch=="Funnel Beaker", "9",
+                 if_else(str_detect(site_ref_and_shell_no, "V.10.")&cultural_epoch=="Funnel Beaker", "10",
+                 if_else(str_detect(site_ref_and_shell_no, "V.11.")&cultural_epoch=="Funnel Beaker", "11",
+                 if_else(str_detect(site_ref_and_shell_no, "V.12.")&cultural_epoch=="Funnel Beaker", "12",
+                 if_else(str_detect(site_ref_and_shell_no, "V.13.")&cultural_epoch=="Funnel Beaker", "13",
+                 if_else(str_detect(site_ref_and_shell_no, "V.14.")&cultural_epoch=="Funnel Beaker", "14",
+                 if_else(str_detect(site_ref_and_shell_no, "V.15.")&cultural_epoch=="Funnel Beaker", "15",
+                 if_else(str_detect(site_ref_and_shell_no, "V.16.")&cultural_epoch=="Funnel Beaker", "16",
+                 if_else(str_detect(site_ref_and_shell_no, "V.17.")&cultural_epoch=="Funnel Beaker", "17",
+                 if_else(str_detect(site_ref_and_shell_no, "V.18.")&cultural_epoch=="Funnel Beaker", "18",
+                 if_else(str_detect(site_ref_and_shell_no, "V.19.")&cultural_epoch=="Funnel Beaker", "19",
+                 if_else(str_detect(site_ref_and_shell_no, "V.20.")&cultural_epoch=="Funnel Beaker", "20",
+                 if_else(str_detect(site_ref_and_shell_no, "V.21.")&cultural_epoch=="Funnel Beaker", "21",
+                 if_else(str_detect(site_ref_and_shell_no, "V.21a.")&cultural_epoch=="Funnel Beaker", "21a",
+                 if_else(str_detect(site_ref_and_shell_no, "V.22.")&cultural_epoch=="Funnel Beaker", "22",
+                 if_else(str_detect(site_ref_and_shell_no, "V.23A.")&cultural_epoch=="Funnel Beaker", "23a",
+                 if_else(str_detect(site_ref_and_shell_no, "V.23B.")&cultural_epoch=="Funnel Beaker", "23b",layer)))))))))))))))))))))
+
+
+
+```
+

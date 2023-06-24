@@ -1,0 +1,153 @@
+---
+title: "Template Title"
+author: "Niklas Hausmann"
+date: "Today"
+output: pdf_document
+---
+
+# Libraries 
+```{r Libraries,echo=FALSE,message = FALSE,warning = FALSE}
+knitr::opts_chunk$set(echo=FALSE,message = FALSE,warning = FALSE)
+
+{
+  pacman::p_load(
+    here,
+    janitor,
+    tidyverse,
+    cowplot,ggx,
+    patchwork,
+    RColorBrewer) 
+  
+  theme_set(theme_cowplot())
+}
+```
+
+# Data
+
+```{r}
+Brief_Res <- readRDS(here("data","Brief_res.rds"))
+source(here("HingeToLength.R"))
+```
+
+
+```{r}
+Brief_Res %>% 
+  # filter(site=="MFG 158/99 Eskilsø SØ") %>% 
+  mutate(length=hingetolength(hinge),
+         lengthMin10=length-10,
+         lengthPlus10=length+10
+         ) %>%
+    ggplot()+
+
+  
+  geom_histogram(
+    aes(x = length, y = after_stat(count) / sum(after_stat(count))),
+    binwidth = 10,
+    fill = "white",
+    col = "grey20",
+    inherit.aes = FALSE,
+    size=1.5,
+    alpha = 1
+  ) +
+  # geom_histogram(aes(x = lengthMin10, y = after_stat(count)/sum(after_stat(count))), binwidth = 5, fill="grey50",col="grey50",inherit.aes = FALSE,alpha=0) +
+    # geom_histogram(aes(x = lengthPlus10, y = after_stat(count)/sum(after_stat(count))), binwidth = 5, fill="grey80",col="grey80",inherit.aes = FALSE,alpha=0) +
+  geom_vline(xintercept = 70, linetype="dashed",size=2,col="red")+
+  geom_vline(xintercept = 77, linetype="dashed",size=2,col="orange")+
+  geom_vline(xintercept = 100, linetype="dashed",size=2,col="blue")+
+  scale_y_continuous(labels = scales::percent, breaks = ) +
+  scale_x_continuous(limits = c(20, 160), breaks = seq(20, 160, by = 10))+
+
+  ylab("n")+xlab("Height")+
+  # ylim(0,40)+
+  ggtitle("Eskilsø", subtitle=paste0("all shells")) +
+  theme_cowplot(30)+
+  # coord_flip() + 
+  theme(legend.position = "none")
+
+```
+
+
+# Weight
+```{r}
+
+
+Brief_Res %>% 
+  # filter(site=="MFG 158/99 Eskilsø SØ") %>% 
+  mutate(length=hingetolength(hinge),
+         weight=0.1013*(length/10)^3.2693
+         ) %>%
+    ggplot()+
+      geom_point(aes(x=length,y=weight))+
+  # geom_histogram(
+  #   aes(x = weight, y = after_stat(count) / sum(after_stat(count))),
+  #   # binwidth = 5,
+  #   # fill = "white",
+  #   # col = "grey20",
+  #   inherit.aes = FALSE,
+  #   size=1.5,
+  #   alpha = 1
+  # ) +
+  # geom_histogram(aes(x = lengthMin10, y = after_stat(count)/sum(after_stat(count))), binwidth = 5, fill="grey50",col="grey50",inherit.aes = FALSE,alpha=0) +
+    # geom_histogram(aes(x = lengthPlus10, y = after_stat(count)/sum(after_stat(count))), binwidth = 5, fill="grey80",col="grey80",inherit.aes = FALSE,alpha=0) +
+  geom_vline(xintercept = 77, linetype="dashed",size=2,col="orange")+
+  geom_vline(xintercept = 70, linetype="dashed",size=2,col="red")+
+  # scale_y_continuous(labels = scales::percent, breaks = ) +
+  # scale_x_continuous(limits = c(20, 160), breaks = seq(20, 160, by = 10))+
+
+  # ylab("n")+xlab("Height")+
+  # ylim(0,40)+
+  ggtitle("Eskilsø", subtitle=paste0("all shells")) +
+  theme_cowplot(30)+
+  # coord_flip() + 
+  theme(legend.position = "none")
+
+```
+
+
+
+# Length vs Age
+```{r}
+
+p <- Brief_Res %>% 
+  mutate(length=hingetolength(hinge)) %>% 
+  ggplot()+
+  aes(as.factor(round(age,0)),length)+
+  scale_colour_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  # geom_flat_violin()
+  geom_boxplot()
+  coord_flip()
+  # geom_point(alpha=0.2,show.legend = FALSE)
+
+Cole <-  p+geom_point(aes(x=1,y=38),size=5,col="red")+ 
+         geom_point(aes(x=3,y=60),size=5,col="red") +
+          geom_point(aes(x=4,y=70),size=5,col="red") 
+
+Dantan_Perrier <-  p+geom_point(aes(x=1,y=34),size=5,col="firebrick") 
+
+Walne <- p+geom_point(aes(x=1,y=40),size=5,col="indianred")+
+          geom_point(aes(x=2,y=57),size=5,col="indianred")+
+          geom_point(aes(x=3,y=70),size=5,col="indianred")+
+          geom_point(aes(x=4,y=79),size=5,col="indianred")+
+          geom_point(aes(x=5,y=84),size=5,col="indianred")+
+          geom_point(aes(x=6,y=87),size=5,col="indianred")+
+          geom_point(aes(x=7,y=90),size=5,col="indianred")
+  
+
+p+geom_point(aes(x=1,y=40),size=5,col="indianred")+
+          geom_point(aes(x=2,y=57),size=5,col="indianred")+
+          geom_point(aes(x=3,y=70),size=5,col="indianred")+
+          geom_point(aes(x=4,y=79),size=5,col="indianred")+
+          geom_point(aes(x=5,y=84),size=5,col="indianred")+
+          geom_point(aes(x=6,y=87),size=5,col="indianred")+
+          geom_point(aes(x=7,y=90),size=5,col="indianred")+
+  geom_point(aes(x=1,y=34),size=5,col="firebrick")+
+  geom_point(aes(x=1,y=38),size=5,col="red")+ 
+         geom_point(aes(x=3,y=60),size=5,col="red") +
+          geom_point(aes(x=4,y=70),size=5,col="red") +
+  xlab("Age")
+
+
+
+```
+

@@ -1,0 +1,96 @@
+---
+title: "Template Title"
+author: "Niklas Hausmann"
+date: "Today"
+output: pdf_document
+---
+
+```{r Load Libraries and Data, include=FALSE}
+
+knitr::opts_chunk$set(message=FALSE,warning=FALSE, echo=FALSE)
+
+
+pacman::p_load(
+                here,
+                tidyverse,dplyr,broom,
+                viridis,ggx,
+                magrittr,fishmethods,
+                cowplot,
+                patchwork,
+                forcats,
+                xts,janitor,
+                ggspatial,spData,ggmap,maps,mapdata,
+                ggiraph,ggrepel,
+                ggpubr)
+source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
+
+  theme_set(theme_cowplot())
+
+Locations <- readRDS("Clean.Rdata") %>% 
+    select(Site,Long,Lat) %>% 
+  clean_names() %>%
+  filter(site!="Eskilsø") %>% 
+  filter(site!="FHM 4339 Dyngby III",
+         site!="FHM 3954 Dyngby I") %>% 
+  add_row(site="MFG 158/99 Eskilø", long=12.08, lat=55.73) %>% 
+  add_row(site="FHM 5184/5948 Hjarnø", long= 10.09, lat=55.83) %>% 
+  add_row(site="FHM 3954/4339 Dyngby", long= 10.242050, lat=55.95475) %>% 
+  
+
+  add_row(site="FHM 6218 Vestre Strandalle", long= 10.22, lat=56.19) 
+Brief_Res <- readRDS(here("data","Brief_res.rds"))
+
+Sites <- Brief_Res %>% select(site) %>% unique()
+
+
+```
+
+
+# New Map
+```{r}
+# Getting the World data from maps and mapdata package
+Locations %>%
+  group_by(site) %>% 
+  summarise(lat=mean(lat),long=mean(long)) %>% 
+  ggplot() +
+  annotate(
+    "rect",
+    ymin = 55,
+    ymax = 58,
+    xmin = 7,
+    xmax = 16,
+    fill = "lightsteelblue",
+    # col = "powderblue",
+    alpha = 1
+  )+
+  borders(
+    fill = "grey90", # change overall map color to lightblue3
+    col = "steelblue", # change border color to lightblue3
+    xlim = c(7, 15),
+    ylim = c(54.9, 58)
+  ) +
+  annotation_north_arrow(location = "tl",
+                         which_north = "true",
+                         style = north_arrow_fancy_orienteering) +
+  aes(x = long, y = lat) +
+  geom_point(col = "black", size = 3) + # change points color to darkolivegreen3
+  geom_text_repel(aes(label = site),
+                  xlim=c(13,NA),
+                  ylim=c(55.8,57),
+                  direction = "y",
+                  segment.size = 0.2, # make lines thinner
+                  # segment.linetype = "dashed", # make lines dashed
+                  segment.color="black",
+                  size=5,
+                  color = "black") + # change label color to black
+  coord_quickmap(xlim = c(8, 15), ylim = c(55, 58)) +
+  scale_x_continuous(expand = c(0, 0)) +  # remove expansion space for x axis
+  scale_y_continuous(expand = c(0, 0)) +  # remove expansion space for y axis
+  theme_cowplot(20)
+
+
+
+
+
+
+```

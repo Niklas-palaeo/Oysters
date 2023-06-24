@@ -1,0 +1,184 @@
+---
+title: "Template Title"
+author: "Niklas Hausmann"
+date: "Today"
+output: pdf_document
+---
+
+# Libraries 
+```{r Libraries,echo=FALSE,message = FALSE,warning = FALSE}
+knitr::opts_chunk$set(echo=FALSE,message = FALSE,warning = FALSE)
+
+{
+  pacman::p_load(
+    here,
+    janitor,
+    tidyverse,
+    cowplot,ggx,
+    patchwork,
+    RColorBrewer) 
+  
+  theme_set(theme_cowplot())
+}
+```
+
+# Data
+
+```{r}
+
+hinge_length <- read.csv(here("data","hinge_vs_total_length.csv")) %>% 
+  mutate(site=if_else(site=="Havn\xbf","Havnø",site))
+
+```
+
+# Plot
+```{r}
+
+hinge_length %>% 
+  # filter(site!="Dyngby",
+  #        site!="Lystrup") %>% 
+  ggplot()+
+  aes(hinge,length,fill=site)+
+  # geom_point()+
+  stat_ellipse(type = "t",geom = "polygon",alpha=0.4)+
+  xlim(0,20)+
+  ylim(0,150)+
+  labs(x="Hinge [mm]", y= "Length [mm]", fill="Site")
+
+
+```
+
+
+# Equations
+
+```{r}
+
+Norsminde_length_lm <- hinge_length %>% 
+  filter(site=="Norsminde") %>% 
+  lm(length~hinge,data=.) 
+
+
+Havnø_length_lm <- hinge_length %>% 
+  filter(site=="Havnø") %>% 
+  lm(length~hinge,data=.) 
+
+
+# These values are Wildly different
+
+```
+
+# Growth Curve
+```{r}
+
+
+# Bertalanffy Growth model
+# GM <-
+#   fishmethods::growth(
+#     intype = 1,
+#     unit = 1,
+#     size = hinge_length$hinge,
+#     age = hinge_length$length,
+#     calctype = 1,
+#     wgtby = 1,
+#     error = 1,
+#     Sinf = 200,
+#     K = 0.3,
+#     t0 = 0
+#   )
+
+# Using nls() instead
+# Define the model
+model <- nls(length ~ a + b*log(hinge), data = hinge_length, start = list(a = 1, b = 0.1))
+
+
+#THIS IS NOW HingeToLength.R
+
+# Install and load the required package
+if (!require(propagate)) {
+  install.packages("propagate")
+  library(propagate)
+}
+
+# Get predicted values and standard errors
+predictions <- predictNLS(model, newdata = data.frame(hinge = hinge_length$hinge))
+
+# Add to the data frame
+hinge_length$est_length <- predictions$Predicted
+hinge_length$se_length <- sqrt(diag(predictions$MSPE))
+
+
+# # Print the model summary to see the estimated parameters
+# # Create a new data frame for predictions
+# hinge_values <- seq(min(hinge_length$hinge), max(hinge_length$hinge), length.out = 100)
+# predicted_length <- predict(model, newdata = data.frame(hinge = hinge_values))
+# predictions <- data.frame(hinge = hinge_values, length = predicted_length)
+
+# Plot the data and the fitted model curve
+ggplot(hinge_length) +
+  aes(x = hinge, y = length)+
+  geom_point() +aes(x = hinge, y = length)+
+  # geom_line(data = predictions, aes(x = hinge, y = length), color = "red") +
+    geom_smooth(method = "lm", formula = y ~ log(x), se = TRUE, color = "darkblue")+
+  labs(x = "Hinge", y = "Length", title = "Hinge to Length Model Fit")
+
+
+# #Define parameters here based on summary
+# Sinf <- summary(GM[["vout"]])[["parameters"]][1]
+# K <- summary(GM[["vout"]])[["parameters"]][2]
+# t0 <- -summary(GM[["vout"]])[["parameters"]][3]
+# 
+# Brief_Res <- Brief %>%
+#   mutate(growthCurve = Sinf * (1 - exp(-K * (Brief$length + t0)))) %>%
+#   mutate(residuals = hinge - growthCurve) 
+# 
+# GrowthLine <- tibble("length"= seq(0,max(Brief$age,na.rm = TRUE),by=0.05),
+#                          "growthcurve"= Sinf * (1 - exp(-K * (length + t0))))
+
+
+
+
+```
+
+# Applying equations and histograms
+## Norsminde
+```{r}
+
+Brief_Res <- readRDS(here("data","Brief_res.rds"))
+
+
+# Nors_length_hist <- 
+  Brief_Res %>% 
+  filter(site == "FHM 2911 Norsminde") %>% 
+  filter(age_readable == TRUE) %>% 
+  dplyr::select(site,hinge,age,residuals) %>% 
+  mutate(length=coef(Norsminde_length_lm)[1]+coef(Norsminde_length_lm)[2]* hinge) %>% 
+  mutate(est_length = coef(model)[1] + coef(model)[2] * log(hinge)) %>% 
+  ggplot()+
+  aes(length,est_length)+
+  geom_point()
+
+
+
+```
+
+## Havnø
+```{r}
+
+Brief_Res <- readRDS(here("data","Brief_res.rds"))
+
+# Havnø_length_hist <- 
+  Brief_Res %>% 
+  filter(site=="FHM 4014 Havnø"|site=="FHM 2911 Norsminde") %>%
+  filter(age_readable == TRUE) %>% 
+  dplyr::select(site,hinge,age,residuals) %>% 
+  mutate(length=coef(Norsminde_length_lm)[1]+coef(Norsminde_length_lm)[2]* hinge) %>% 
+  ggplot()+
+  aes(length,fill=site)+
+  # geom_density()+
+  geom_histogram(col="grey10",binwidth = 2,show.legend = FALSE)+
+    geom_vline(xintercept = 60)+
+    geom_vline(xintercept = 80)+
+    xlim(20,160)+
+    facet_wrap(~site,nrow=2)
+
+```

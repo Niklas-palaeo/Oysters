@@ -1,0 +1,64 @@
+---
+title: "Histo Eco Data Wadden"
+author: "Niklas Hausmann"
+date: "Today"
+output: pdf_document
+---
+
+# Libraries 
+```{r Libraries,echo=FALSE,message = FALSE,warning = FALSE}
+knitr::opts_chunk$set(echo=FALSE,message = FALSE,warning = FALSE)
+
+{
+  pacman::p_load(
+    here,
+    janitor,
+    tidyverse,
+    cowplot,ggx,
+    patchwork,
+    RColorBrewer) 
+  
+  theme_set(theme_cowplot())
+}
+```
+
+# Data THE DATA IS BUGGED
+
+```{r}
+Wadden1 <- read_csv(here("Data","FrisianWaddenSea.csv"), col_names = FALSE, trim_ws = FALSE) %>% 
+  rename(year=X1,oysters=X2) %>% 
+  mutate(year=round(year,0),
+         oysters=round(as.numeric(oysters),2),
+         period="1770—1830")
+Wadden2 <- read_csv(here("Data","NorthFrisianWaddenSea.csv"), col_names = FALSE, trim_ws = FALSE) %>% 
+  rename(year=X1,oysters=X2) %>% 
+  mutate(year=round(year,0),
+         oysters=round(as.numeric(oysters),2),
+         period="1870—1930")
+Wadden3 <- read_csv(here("Data","PacificOysterNetherlands.csv"), col_names = FALSE, trim_ws = FALSE) %>% 
+  rename(year=X1,oysters=X2) %>% 
+  mutate(year=round(year,0),
+         oysters=round(as.numeric(oysters),2),
+         period="1970—2000")
+
+Wadden <- bind_rows(Wadden1,Wadden2,Wadden3) #%>% 
+  # rename(year=X1,oysters=X2) %>% 
+  # mutate(year=round(year,0),
+  #        oysters=round(as.numeric(oysters),2))
+
+# rm(Wadden1,Wadden2,Wadden3)
+
+
+```
+
+
+```{r}
+
+Wadden2 %>% 
+  ggplot()+
+  aes(year,oysters)+
+  # annotate("rect",xmin = 1830,xmax = 1865,fill="grey80",ymin=0,ymax=2)+
+  geom_col()+
+  facet_wrap(~period,scales = "free_x")
+```
+

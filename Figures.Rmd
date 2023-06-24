@@ -1,0 +1,665 @@
+---
+title: "Oyster Paper"
+output: pdf_document
+---
+
+# Libraries 
+```{r Libraries,echo=FALSE,message = FALSE,warning = FALSE}
+knitr::opts_chunk$set(echo=FALSE,message = FALSE,warning = FALSE)
+
+{
+  pacman::p_load(
+    here,
+    janitor,
+    tidyverse,ggpubr,
+    cowplot,ggx,forcats,fishmethods,
+    patchwork,viridis,
+    RColorBrewer) 
+  
+  theme_set(theme_cowplot())
+  
+}
+
+
+source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
+
+```
+
+# Data
+
+```{r}
+Raw_df <- read_csv(here("Data","Oyster_data.csv")) %>% 
+  clean_names() %>% 
+  mutate(age=as.numeric(age))
+
+Brief <- Raw_df %>%
+  select(
+    museum_site_prefix,
+    site_name,
+    cultural_epoch,
+    grid_square,
+    level,
+    plan,
+    site_ref_and_shell_no,
+    layer,
+    hinge_mm,
+    age_readable,
+    age
+  ) %>%
+  rename(hinge=hinge_mm) %>% 
+  filter(cultural_epoch == "Funnel Beaker" |
+           cultural_epoch == "Ertebølle") %>%
+  mutate(cultural_epoch = as.factor(cultural_epoch) %>% fct_rev) %>%
+  unite("site",
+        museum_site_prefix:site_name,
+        sep = " ") %>% 
+  mutate(site=fct_infreq(site) %>% fct_rev,
+         multiperiod=case_when(site=="FHM 4383 Krabbesholm II"~TRUE,
+                               site=="FHM 2911 Bjørnsholm" ~ TRUE,
+                               site=="FHM ÅHM 6814 Visborg" ~ TRUE,
+                               site=="FHM 4014 Hanvø"~TRUE,
+                               site== "FHM 2911 Norsminde"~TRUE, 
+                               TRUE~FALSE
+                               )) 
+
+
+```
+
+# Data availability Figure 1
+```{r Records by period}
+Totals_p <- 
+  Brief %>% 
+  mutate(success_type_p=as.factor(
+                          case_when(
+                                  (cultural_epoch=="Ertebølle")&(!is.na(hinge)|age_readable==TRUE)~"Success Ertebølle",
+                                  (cultural_epoch=="Ertebølle")&(is.na(hinge)|age_readable==FALSE)~"Fail Ertebølle",
+                                  (cultural_epoch=="Funnel Beaker")&(!is.na(hinge)|age_readable==TRUE)~"Success Funnel Beaker",
+                                  (cultural_epoch=="Funnel Beaker")&(is.na(hinge)|age_readable==FALSE)~"Fail Funnel Beaker",
+                                  )
+  )
+  ) %>% 
+  group_by(site,success_type_p) %>% 
+  summarise(total=n()) %>% 
+  ungroup() %>%
+  mutate(success_type_p=fct_relevel(success_type_p,c("Fail Funnel Beaker","Success Funnel Beaker","Fail Ertebølle","Success Ertebølle")))
+  
+  
+  
+F1A <-
+Totals_p %>% 
+  ggplot(aes(
+    x = site,
+    y = total,
+    colour = success_type_p,
+    fill = success_type_p
+  )) +
+  geom_col(position = "stack",
+           width = 0.8,show.legend = TRUE
+           ) +
+  scale_colour_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[2],viridis_pal()(4)[3], viridis_pal()(4)[3]),guide="none") +
+  scale_fill_manual(values = c(viridis_pal()(4)[3],viridis_pal()(4)[2],"#FFFFFF", "#FFFFFF"),
+                                        labels=c('Ertebølle', 'Funnel Beaker','',''),
+                    breaks=c('Success Ertebølle','Success Funnel Beaker','Fail Ertebølle','Fail Funnel Beaker')
+                    ) +
+
+  ylab("") +
+  xlab("")+
+  theme(legend.position = c(0.6, 0.3),
+        legend.title = element_blank()) +
+  coord_flip() + ggtitle("",subtitle="by period")
+
+Totals_d <-
+  Brief %>%
+  select(site, cultural_epoch, hinge, age) %>%
+  rename(Hinge=hinge,Age=age) %>%
+  pivot_longer(cols=c("Hinge","Age"), names_to = "datatype", values_to = "value") %>%
+  mutate(success=
+                          case_when(
+                                  datatype=="Hinge"&!is.na(value)~"Success",
+                                  datatype=="Hinge"&is.na(value)~"Fail",
+                                  datatype=="Age"&!is.na(value)~"Success",
+                                  datatype=="Age"&is.na(value)~"Fail",
+                                  )
+  
+  ) %>%
+  group_by(site,success,datatype) %>% 
+  summarise(total=n()) %>% 
+  ungroup() %>%
+  unique() %>% 
+  complete(crossing(site,success,datatype)) %>%
+  unite(datatype,success, col = "success_type_d", sep = "_",remove = FALSE)
+ 
+  
+F1B <- 
+Totals_d %>% 
+  ggplot() +
+  geom_col(data=Totals_d %>% filter(datatype=="Age"),
+           aes(x=as.numeric(site)-0.2, y = total,colour = success_type_d,fill = success_type_d),
+           position = "stack",
+           show.legend = FALSE,
+           width=0.3
+           ) +
+  geom_col(data=Totals_d %>% filter(datatype=="Hinge"),
+           aes(x=as.numeric(site)+0.2, y = total,colour = success_type_d,fill = success_type_d),
+           position = "stack",inherit.aes = FALSE,
+           show.legend = TRUE,
+           width=0.3
+           ) +
+  scale_colour_manual(values = c(viridis_pal(option = "G")(6)[4],viridis_pal(option = "G")(6)[4], viridis_pal(option = "G")(6)[2], viridis_pal(option = "G")(6)[2]),guide="none") +
+  scale_fill_manual(values = c(viridis_pal(option = "G")(6)[2],viridis_pal(option = "G")(6)[4],"#FFFFFF","#FFFFFF"),
+                    labels=c('Hinge','Age','',''),
+                    breaks=c('Hinge_Success','Age_Success','Age_Fail','Hinge_Fail')
+                    ) +
+  ylab("") +
+  scale_x_continuous(name = "",
+                     limits = c(0.6,19.6),
+                     breaks = unique(sort(as.numeric(Totals_d$site))),
+                     labels = levels(Totals_d$site))+
+  theme(legend.position = c(0.2, 0.3),
+        legend.title = element_blank()) + 
+  coord_flip()+
+  labs(fill = "")
+  ggtitle("",subtitle="by measurement type")
+```
+
+
+```{r Figure 1}
+F1A/F1B+plot_annotation(tag_levels = "A",title = "Number of successful records")+theme_cowplot(16)
+
+  
+```
+
+
+# Significance tests at sites and Periods
+
+```{r}
+#Periods
+## hinge
+### test
+Brief %>%   rstatix::pairwise_wilcox_test(hinge ~ cultural_epoch)
+
+### means
+Brief %>% group_by(cultural_epoch) %>% summarise(hinge=mean(hinge,na.rm = TRUE))
+
+## age
+### test
+Brief %>%   rstatix::pairwise_wilcox_test(age ~ cultural_epoch)
+### means
+Brief %>% group_by(cultural_epoch) %>% summarise(age=mean(age,na.rm = TRUE))
+
+## residuals
+### test
+Brief_Res %>%   rstatix::pairwise_wilcox_test(residuals ~ cultural_epoch)
+### means
+Brief_Res %>% group_by(cultural_epoch) %>% summarise(residuals=mean(residuals,na.rm = TRUE))
+
+# Sites
+## Hinge
+Brief %>%   
+  filter(site=="FHM 4383 Krabbesholm II") %>% 
+  rstatix::pairwise_wilcox_test(hinge ~ cultural_epoch)
+
+Brief %>%   
+  filter(site=="FHM 2911 Bjørnsholm") %>% 
+  rstatix::pairwise_wilcox_test(hinge ~ cultural_epoch)
+
+Brief %>%   
+  filter(site=="FHM 4014 Havnø") %>% 
+  rstatix::pairwise_wilcox_test(hinge ~ cultural_epoch)
+
+Brief %>%   
+  filter(site=="MFG 158/99 Eskilsø SØ") %>% 
+  rstatix::pairwise_wilcox_test(hinge ~ cultural_epoch)
+
+
+Brief %>%   
+  filter(site=="FHM 2911 Norsminde") %>% 
+  rstatix::pairwise_wilcox_test(hinge ~ cultural_epoch)
+
+Brief %>%   
+  filter(site=="ÅHM 6814 Visborg") %>% 
+  rstatix::pairwise_wilcox_test(hinge ~ cultural_epoch)
+
+
+## Age
+Brief %>%   
+  filter(site=="FHM 4383 Krabbesholm II") %>% 
+  rstatix::pairwise_wilcox_test(age ~ cultural_epoch)
+
+Brief %>%   
+  filter(site=="FHM 2911 Bjørnsholm") %>% 
+  rstatix::pairwise_wilcox_test(age ~ cultural_epoch)
+
+Brief %>%   
+  filter(site=="FHM 4014 Havnø") %>% 
+  rstatix::pairwise_wilcox_test(age ~ cultural_epoch)
+
+Brief %>%   
+  filter(site=="MFG 158/99 Eskilsø SØ") %>% 
+  rstatix::pairwise_wilcox_test(age ~ cultural_epoch)
+
+
+Brief %>%   
+  filter(site=="FHM 2911 Norsminde") %>% 
+  rstatix::pairwise_wilcox_test(age ~ cultural_epoch)
+
+Brief %>%   
+  filter(site=="ÅHM 6814 Visborg") %>% 
+  rstatix::pairwise_wilcox_test(age ~ cultural_epoch)
+
+## Residuals
+Brief_Res %>%   
+  filter(site=="FHM 4383 Krabbesholm II") %>% 
+  rstatix::pairwise_wilcox_test(residuals ~ cultural_epoch)
+
+Brief_Res %>%   
+  filter(site=="FHM 2911 Bjørnsholm") %>% 
+  rstatix::pairwise_wilcox_test(residuals ~ cultural_epoch)
+
+Brief_Res %>%   
+  filter(site=="FHM 4014 Havnø") %>% 
+  rstatix::pairwise_wilcox_test(residuals ~ cultural_epoch)
+
+Brief_Res %>%   
+  filter(site=="MFG 158/99 Eskilsø SØ") %>% 
+  rstatix::pairwise_wilcox_test(residuals ~ cultural_epoch)
+
+
+Brief_Res %>%   
+  filter(site=="FHM 2911 Norsminde") %>% 
+  rstatix::pairwise_wilcox_test(residuals ~ cultural_epoch)
+
+Brief_Res %>%   
+  filter(site=="ÅHM 6814 Visborg") %>% 
+  rstatix::pairwise_wilcox_test(residuals ~ cultural_epoch)
+
+```
+
+
+
+
+# Hinge size by site Figure 2
+```{r}
+
+# I think this might work for the supplementary but not the main text
+
+
+Fig2atop <-
+Brief %>% 
+  ggplot()+
+  aes(x = cultural_epoch, y = hinge, colour = cultural_epoch) +
+  # geom_jitter(alpha=0.7, width = 0.1, size=0.4)+
+  geom_boxplot(
+    aes(fill = cultural_epoch, colour = cultural_epoch),
+    outlier.shape = NA,
+    alpha = 0.3,
+    position = position_nudge(x = 0),
+    size = 0.5,
+    width=0.3) +
+  # scale_x_discrete(limits = levels(CleanSites %>% select(Periods) %>% filter(Periods=="Funnel Beaker"|Periods=="Ertebølle")))+
+  geom_flat_violin(aes(fill=cultural_epoch),position = position_nudge(x = .0),alpha=0.3)+
+  scale_colour_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3]))+
+  ylab("mm")+xlab("")+
+  ylim(0,40)+
+  ggtitle("Size Distributions", subtitle=paste0("by period")) +
+  theme_cowplot(20)+
+  coord_flip() + theme(legend.position = "none")
+
+Fig2abelow <- 
+Brief %>% 
+  # na.omit() %>% 
+  ggplot()+
+  aes(x = site, y = hinge, colour = cultural_epoch) +
+  geom_jitter(alpha=0.7, width = 0.1, size=0.4)+
+  geom_boxplot(
+    aes(fill = cultural_epoch, colour = cultural_epoch),
+    outlier.shape = NA,
+    alpha = 0.3,
+    position = position_nudge(x = 0.2),
+    size = 0.5,
+    width=0.3) +
+  # scale_x_discrete(limits = levels(CleanSites %>% select(Periods) %>% filter(Periods=="Funnel Beaker"|Periods=="Ertebølle")))+
+  # geom_flat_violin(aes(fill=cultural_epoch),position = position_nudge(x = .2),alpha=0.3)+
+  scale_colour_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3]))+
+  ylab("mm")+xlab("")+
+  ylim(0,40)+
+  ggtitle("", subtitle="by site") +
+  theme_cowplot(20)+
+  coord_flip() + theme(legend.position = "none")+ 
+   stat_compare_means(method = "wilcox.test",label.x = 0,
+                     label.y = 40,paired=FALSE,label = "p.signif")
+
+Fig2atop/Fig2abelow+plot_layout(heights=c(0.1,0.9))+plot_annotation(tag_levels = "A")
+
+
+```
+
+# Growth curve and residuals
+## Growth Curve
+```{r}
+
+
+# Bertalanffy Growth model
+GM <- growth(intype=1,unit=1,size=Brief$hinge,age=Brief$age,
+         calctype=1,wgtby=1,error=1,Sinf=200,K=0.3,t0=-1)
+
+#Define parameters here based on summary
+Sinf <- summary(GM[["vout"]])[["parameters"]][1]
+K <- summary(GM[["vout"]])[["parameters"]][2]
+t0 <- -summary(GM[["vout"]])[["parameters"]][3]
+
+Brief_Res <- Brief %>%
+  mutate(growthCurve = Sinf * (1 - exp(-K * (Brief$age + t0)))) %>%
+  mutate(residuals = hinge - growthCurve) 
+
+GrowthLine <- tibble("age"= seq(0,max(Brief$age,na.rm = TRUE),by=0.05),
+                         "growthcurve"= Sinf * (1 - exp(-K * (age + t0))))
+
+GrowthCurve <-
+  Brief_Res %>%
+  ggplot(aes(x = age, y = hinge, col = cultural_epoch)) +
+  geom_point(alpha = 0.5, size =3) +
+  geom_line(data=GrowthLine,aes(x = age, y = growthcurve), col = "grey80") +
+  scale_colour_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  theme_cowplot() + 
+  ylim(0,25)+
+    ggtitle("Growth Curve") + 
+    # gghighlight(grepl("Hjarnø Sund", site, fixed = TRUE))+
+  theme(legend.position = c(0.5, 0.2))+
+  xlab("Age")
+
+Res <-
+  Brief_Res %>%
+  # mutate(NormRes = (Hinge / GrowthCurve)) %>%
+  # arrange(age) %>%
+  ggplot(aes(x = age, y = residuals, col = cultural_epoch)) +
+  # geom_point_interactive(aes(tooltip = hinge,
+  #                            data_id = hinge),
+  #                        alpha = 0.5,size=3) +
+  geom_point(alpha=0.5,size=3)+
+  # geom_point(data=Brief_Res %>% filter(site=="ÅHM 6814 Visborg"),aes(x = age, y = residuals,col=cultural_epoch),
+  #            # color="firebrick",
+  #            alpha=0.5,size=3)+
+  scale_colour_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  theme_cowplot() +
+  geom_hline(yintercept = 0, col = "grey80") +
+  ggtitle("Residuals")+
+  ylim(-10,12)+    
+  # gghighlight(grepl("Hjarnø Sund", site, fixed = TRUE))+
+
+  theme(legend.position = "none")+
+  xlab("Age")+
+  ylab("Residuals")
+
+GrowthCurve+Res
+
+
+
+
+```
+# Fig 2 - addendum
+## Age by site
+```{r}
+
+Fig2btop <-
+Brief_Res %>% 
+  ggplot()+
+  aes(x = cultural_epoch, y = age, fill = cultural_epoch,col = cultural_epoch) +
+  # geom_jitter(alpha=0.7, width = 0.1, size=0.4)+
+  geom_boxplot(
+    aes(fill = cultural_epoch, colour = cultural_epoch),
+    outlier.shape = NA,
+    alpha = 0.3,
+    position = position_nudge(x = 0),
+    size = 0.5,
+    width=0.3) +
+  # scale_x_discrete(limits = levels(CleanSites %>% select(Periods) %>% filter(Periods=="Funnel Beaker"|Periods=="Ertebølle")))+
+  geom_flat_violin(aes(fill=cultural_epoch),position = position_nudge(x = .0),alpha=0.3)+
+  scale_colour_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3]))+
+  ylab("years")+xlab("")+
+  ggtitle("Age ", subtitle=paste0("by period")) +
+  theme_cowplot(20)+
+  coord_flip() + theme(legend.position = "none")
+
+Fig2bbelow <-
+  Brief_Res %>%
+  ggplot(aes(x = site, y = age, fill = cultural_epoch,col=cultural_epoch)) +
+  geom_boxplot(varwidth = TRUE,alpha=0.7)+
+  geom_point(alpha=0.6,position = position_dodge(0.3))+
+  scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  scale_color_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  theme_cowplot(20) +
+  ggtitle("", subtitle = "by site")+
+  theme(legend.position = "none")+
+    stat_compare_means(method = "wilcox.test",label.x = 0,
+                     label.y = 15,paired=FALSE,label = "p.signif")+
+  coord_flip()+
+  xlab("")+
+  ylab("years")
+
+
+
+```
+
+
+
+
+## Residuals by site
+```{r}
+Fig2ctop <-
+Brief_Res %>% 
+  ggplot()+
+  aes(x = cultural_epoch, y = residuals, fill = cultural_epoch,col = cultural_epoch) +
+  # geom_jitter(alpha=0.7, width = 0.1, size=0.4)+
+  geom_boxplot(
+    aes(fill = cultural_epoch, colour = cultural_epoch),
+    outlier.shape = NA,
+    alpha = 0.3,
+    position = position_nudge(x = 0),
+    size = 0.5,
+    width=0.3) +
+  # scale_x_discrete(limits = levels(CleanSites %>% select(Periods) %>% filter(Periods=="Funnel Beaker"|Periods=="Ertebølle")))+
+  geom_flat_violin(aes(fill=cultural_epoch),position = position_nudge(x = .0),alpha=0.3)+
+  scale_colour_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3]))+
+  ylab("mm")+xlab("")+
+  ggtitle("Residuals ", subtitle=paste0("by period")) +
+  theme_cowplot(20)+
+  coord_flip() + theme(legend.position = "none")
+
+Fig2cbelow <-
+  Brief_Res %>%
+  ggplot(aes(x = site, y = residuals, fill = cultural_epoch,col=cultural_epoch)) +
+  geom_boxplot(varwidth = TRUE,alpha=0.7)+
+  geom_point(alpha=0.6,position = position_dodge(0.3))+
+  scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  scale_color_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  theme_cowplot(20) +
+  ggtitle("", subtitle = "by site")+
+  theme(legend.position = "none")+
+    stat_compare_means(method = "wilcox.test",label.x = 0,
+                     label.y = 15,paired=FALSE,label = "p.signif")+
+  coord_flip()+
+  xlab("")+
+  ylab("Residuals")
+```
+
+# Figure 2
+```{r}
+(Fig2atop+Fig2btop+Fig2ctop)/(Fig2abelow+Fig2bbelow+Fig2cbelow)+plot_annotation(tag_levels = "A")+plot_layout(heights = c(0.1,0.9))
+
+```
+
+
+# Figure 2 Alternative with Length
+```{r}
+
+source(here("HingeToLength.R"))
+
+Fig2a2top <-
+Brief %>% 
+  mutate(est_length=hingetolength(hinge)) %>% 
+  ggplot()+
+  aes(x = cultural_epoch, y = est_length, colour = cultural_epoch) +
+  # geom_jitter(alpha=0.7, width = 0.1, size=0.4)+
+  geom_boxplot(
+    aes(fill = cultural_epoch, colour = cultural_epoch),
+    outlier.shape = NA,
+    alpha = 0.3,
+    position = position_nudge(x = 0),
+    size = 0.5,
+    width=0.3) +
+  # scale_x_discrete(limits = levels(CleanSites %>% select(Periods) %>% filter(Periods=="Funnel Beaker"|Periods=="Ertebølle")))+
+  geom_flat_violin(aes(fill=cultural_epoch),position = position_nudge(x = .0),alpha=0.3)+
+  scale_colour_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3]))+
+  ylab("mm")+xlab("")+
+  # ylim(0,40)+
+  ggtitle("Size Distributions", subtitle=paste0("by period")) +
+  theme_cowplot(20)+
+  coord_flip() + theme(legend.position = "none")
+
+Fig2a2below <- 
+Brief %>% 
+    mutate(est_length=hingetolength(hinge)) %>% 
+  # na.omit() %>% 
+  ggplot()+
+  aes(x = site, y = est_length, colour = cultural_epoch) +
+  geom_jitter(alpha=0.7, width = 0.1, size=0.4)+
+  geom_boxplot(
+    aes(fill = cultural_epoch, colour = cultural_epoch),
+    outlier.shape = NA,
+    alpha = 0.3,
+    position = position_nudge(x = 0.2),
+    size = 0.5,
+    width=0.3) +
+  # scale_x_discrete(limits = levels(CleanSites %>% select(Periods) %>% filter(Periods=="Funnel Beaker"|Periods=="Ertebølle")))+
+  # geom_flat_violin(aes(fill=cultural_epoch),position = position_nudge(x = .2),alpha=0.3)+
+  scale_colour_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3]))+
+  ylab("length in mm")+xlab("")+
+  # ylim(0,40)+
+  ggtitle("", subtitle="by site") +
+  theme_cowplot(20)+
+  coord_flip() + theme(legend.position = "none")+ 
+   ggpubr::stat_compare_means(method = "wilcox.test",label.x = 0,
+                     label.y = 140,paired=FALSE,label = "p.signif")
+
+Fig2a2top/Fig2a2below+plot_layout(heights=c(0.1,0.9))+plot_annotation(tag_levels = "A")
+
+
+
+```
+
+
+
+
+
+# Figure 4 MIGHT NOT MAKE THIS FIGURE
+```{r Residuals by multi-period Site}
+
+
+Fig4A <- 
+  Brief_Res %>%
+    filter(site=="FHM 4383 Krabbesholm II") %>% 
+  ggplot(aes(x = age, y = hinge, col = cultural_epoch)) +
+  geom_point(alpha = 0.5, size =3) +
+  # stat_density_2d(geom = "polygon", aes(alpha = ..level.., fill = cultural_epoch),  show.legend = FALSE)+
+    scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  geom_line(data=GrowthLine,aes(x = age, y = growthcurve), col = "grey80") +
+  scale_colour_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  theme_cowplot() + 
+  ylim(0,25)+
+    ggtitle("Growth Curve",subtitle = "FHM 4383 Krabbesholm II") + 
+  theme(legend.position = c(0.5, 0.2))+
+  xlab("Age")
+
+Fig4B <- 
+  Brief_Res %>%
+    filter(site=="FHM 2911 Bjørnsholm") %>% 
+  ggplot(aes(x = age, y = hinge, col = cultural_epoch)) +
+  geom_point(alpha = 0.5, size =3) +
+  # stat_density_2d(geom = "polygon", aes(alpha = ..level.., fill = cultural_epoch),  show.legend = FALSE)+
+    scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  geom_line(data=GrowthLine,aes(x = age, y = growthcurve), col = "grey80") +
+  scale_colour_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  theme_cowplot() + 
+  ylim(0,25)+
+    ggtitle("", subtitle = "FHM 2911 Bjørnsholm") +
+  theme(legend.position = c(0.5, 0.2))+
+  xlab("Age")
+
+Fig4C <- 
+  Brief_Res %>%
+    filter(site=="ÅHM 6814 Visborg") %>% 
+  ggplot(aes(x = age, y = hinge, col = cultural_epoch)) +
+  geom_point(alpha = 0.5, size =3) +
+  # stat_density_2d(geom = "polygon", aes(alpha = ..level.., fill = cultural_epoch),  show.legend = FALSE)+
+    scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  geom_line(data=GrowthLine,aes(x = age, y = growthcurve), col = "grey80") +
+  scale_colour_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  theme_cowplot() + 
+  ylim(0,25)+
+    ggtitle("", subtitle = "ÅHM 6814 Visborg") +
+  theme(legend.position = c(0.5, 0.2))+
+  xlab("Age")
+
+Fig4D <-
+  Brief_Res %>%
+    filter(site=="FHM 4014 Havnø") %>% 
+  ggplot(aes(x = age, y = hinge, col = cultural_epoch)) +
+  geom_point(alpha = 0.5, size =3) +
+  # stat_density_2d(geom = "polygon", aes(alpha = ..level.., fill = cultural_epoch),  show.legend = FALSE)+
+    scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  geom_line(data=GrowthLine,aes(x = age, y = growthcurve), col = "red") +
+  scale_colour_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  theme_cowplot() + 
+  ylim(0,25)+
+    ggtitle("", subtitle = "FHM 4014 Havnø") +
+  theme(legend.position = c(0.5, 0.2))+
+  xlab("Age")
+
+Fig4E <-
+  Brief_Res %>%
+    filter(site=="MFG 158/99 Eskilsø SØ") %>% 
+  ggplot(aes(x = age, y = hinge, col = cultural_epoch)) +
+  geom_point(alpha = 0.5, size =3) +
+  # stat_density_2d(geom = "polygon", aes(alpha = ..level.., fill = cultural_epoch),  show.legend = FALSE)+
+    scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  geom_line(data=GrowthLine,aes(x = age, y = growthcurve), col = "grey80") +
+  scale_colour_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  theme_cowplot() + 
+  ylim(0,25)+
+    ggtitle("", subtitle = "MFG 158/99 Eskilsø SØ") +
+  theme(legend.position = c(0.5, 0.2))+
+  xlab("Age")
+
+Fig4F <-
+  Brief_Res %>%
+    filter(site=="FHM 2911 Norsminde") %>% 
+  ggplot(aes(x = age, y = hinge, col = cultural_epoch)) +
+  geom_point(alpha = 0.5, size =3) +
+# stat_density_2d(geom = "polygon", aes(alpha = ..level.., fill = cultural_epoch), bins = 5, show.legend = FALSE)+
+    scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+    geom_line(data=GrowthLine,aes(x = age, y = growthcurve), col = "red") +
+    scale_colour_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  theme_cowplot() + 
+  ylim(0,15)+xlim(0,10)+
+    ggtitle("", subtitle = "FHM 2911 Norsminde") +
+  theme(legend.position = c(0.5, 0.2))+
+  xlab("Age")
+
+
+(Fig4A+Fig4B+Fig4C)/(Fig4D+Fig4E+Fig4F)+plot_annotation(tag_levels = "A")
+
+
+```
+
+
+
+
+
+

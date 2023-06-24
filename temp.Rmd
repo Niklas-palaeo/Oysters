@@ -1,0 +1,163 @@
+---
+title: "Time Series regression"
+author: "Niklas Hausmann"
+date: "Today"
+output:
+  html_document:
+    df_print: paged
+---
+
+# Libraries 
+```{r Libraries,echo=FALSE,message = FALSE,warning = FALSE}
+knitr::opts_chunk$set(echo=FALSE,message = FALSE,warning = FALSE)
+
+{
+  pacman::p_load(
+    here,
+    janitor,
+    tidyverse,
+    cowplot,ggx,forecast,
+    patchwork,
+    RColorBrewer) 
+  
+  theme_set(theme_cowplot())
+}
+```
+
+# Data
+
+```{r}
+
+means <- Krabbesholm %>% 
+  select(age, layer, hinge, residuals) %>% 
+  na.omit() %>% 
+  group_by(layer) %>% 
+  summarise(age=mean(age,na.rm = FALSE),
+            hinge=mean(hinge, na.rm = FALSE),
+            residuals=mean(residuals, na.rm = FALSE)
+            )
+
+
+
+```
+
+
+
+
+# Run analysis
+```{r}
+time_series_regression <- function(data, variable) {
+  time_periods_numeric <- 1:length(data$layer)
+
+  ts_data <- ts(data = data[, c("hinge", as.character(variable))],
+                start = c(1, 1),
+                frequency = 1)
+
+  model_formula <- as.formula(paste("hinge ~", variable))
+  model <- tslm(model_formula, data = ts_data)
+  model_summary <- summary(model)
+
+  p_value <- round(model_summary$coefficients[as.character(variable), "Pr(>|t|)"], 3)
+  adjusted_r_squared <- round(model_summary$adj.r.squared, 2)
+
+  result <- data.frame(P_value = p_value, Adjusted_R_squared = adjusted_r_squared)
+
+  return(result)
+}
+
+
+```
+
+
+
+# multiple regression
+```{r}
+
+multiple_regression <- function(data) {
+  model <- lm(hinge ~ age + residuals, data = data)
+  model_summary <- summary(model)
+
+  age_coeff <- round(model_summary$coefficients["age", "Estimate"], 3)
+  residuals_coeff <- round(model_summary$coefficients["residuals", "Estimate"], 3)
+
+  age_p_value <- round(model_summary$coefficients["age", "Pr(>|t|)"], 3)
+  residuals_p_value <- round(model_summary$coefficients["residuals", "Pr(>|t|)"], 3)
+
+  adjusted_r_squared <- round(model_summary$adj.r.squared, 2)
+
+  result <- data.frame(Coeff_Age = age_coeff,
+                       Coeff_Residuals = residuals_coeff,
+                       P_value_Age = age_p_value,
+                       P_value_Residuals = residuals_p_value,
+                       Adjusted_R_squared = adjusted_r_squared)
+
+  return(result)
+}
+
+
+
+```
+
+# multiple regression standard
+```{r}
+# Install and load the QuantPsyc package
+if (!requireNamespace("QuantPsyc", quietly = TRUE)) {
+  install.packages("QuantPsyc")
+}
+
+
+multiple_regression <- function(data) {
+  model <- lm(hinge ~ age + residuals, data = data)
+  model_summary <- summary(model)
+  
+  # Obtain standardized coefficients
+  standardized_coefficients <- QuantPsyc::lm.beta(model)
+
+  age_coeff <- round(standardized_coefficients["age"], 3)
+  residuals_coeff <- round(standardized_coefficients["residuals"], 3)
+
+  age_p_value <- round(model_summary$coefficients["age", "Pr(>|t|)"], 3)
+  residuals_p_value <- round(model_summary$coefficients["residuals", "Pr(>|t|)"], 3)
+
+  adjusted_r_squared <- round(model_summary$adj.r.squared, 2)
+
+  result <- data.frame(Standardized_Coeff_Age = age_coeff,
+                       Standardized_Coeff_Residuals = residuals_coeff,
+                       P_value_Age = age_p_value,
+                       P_value_Residuals = residuals_p_value,
+                       Adjusted_R_squared = adjusted_r_squared)
+
+  return(result)
+}
+
+data <- VisbA16_means
+
+```
+
+
+# add table
+```{r}
+library(kableExtra)
+# Plain table
+Strat_sites_stats %>%
+  knitr::kable(format = "simple", digits = 2)
+
+# Table with striped rows
+Strat_sites_stats %>%
+  knitr::kable(format = "simple", digits = 2) %>%
+  kable_styling("striped",full_html = TRUE)
+
+# Table with striped rows and colored text (based on values)
+Strat_sites_stats %>%
+  knitr::kable(format = "simple", digits = 2) %>%
+  kable_styling("striped") %>%
+  cell_spec(column = c("Standardized_Coeff_Age", "Standardized_Coeff_Residuals"),
+            color = ifelse(result_table$Standardized_Coeff_Age > 0, "blue", "red"))
+
+# Display the table
+table
+
+
+
+```
+

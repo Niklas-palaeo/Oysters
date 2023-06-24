@@ -1,0 +1,195 @@
+\documentclass[hidelinks,12pt,a4paper]{article}
+
+
+\usepackage{geometry}
+ \geometry{
+ a4paper,
+ total={170mm,250mm},
+ left=20mm,
+ top=25mm,
+ }
+
+\setlength{\headsep}{10pt}  
+\setlength{\headheight}{14.5pt}  
+  
+  
+% Packages
+\usepackage{float}
+\usepackage{textcomp}
+\usepackage{lineno}
+\usepackage{ragged2e}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{longtable,booktabs}
+\usepackage{titlesec}
+\usepackage[most]{tcolorbox}
+\usepackage{hyperref}
+
+%\usepackage{showframe}  
+
+
+% Variables 
+\def\journalname{Mesolithic Miscellany}
+
+\makeatletter   % ______________PUT FUNCTIONS AND STUFF below THIS LINE
+
+%Text format
+\usepackage{fontspec}
+
+\setromanfont[
+BoldFont=MinionPro-Bold.otf,
+ItalicFont=MinionPro-It.otf,
+BoldItalicFont=MinionPro-BoldIt.otf,
+]{MinionPro-Regular.otf}
+
+\setsansfont[
+BoldFont=Metropolis-Bold.otf,
+ItalicFont=Metropolis-RegularItalic.otf,
+BoldItalicFont=Metropolis-BoldItalic.otf
+]{Metropolis-Regular.otf}
+
+\definecolor{MesoRed}{RGB}{170, 42, 12}
+\usepackage[font={small,it}]{caption} 
+
+% URL format
+\renewcommand\UrlFont{\sf\itshape}
+
+% Section title formatting
+
+\titleformat*{\section} {\large\sf\bfseries}
+\titleformat*{\subsection}{\normalsize\sf\bfseries}
+\titleformat*{\subsubsection}{\normalsize\sf}
+
+                                   
+%\renewcommand\subsubsection{\@startsection {subsubsection}{1}{\z@}%
+%                                   {-3.5ex \@plus -1ex \@minus -.2ex}%
+%                                   {2.3ex \@plus.2ex}%
+%                                   {\normalsize\sf}}                                                                 
+
+% Header and Footer
+\usepackage[english]{babel}
+\usepackage{fancyhdr}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\journalname : $issuenumber$}
+\lhead{$citeas$ ($volumeyear$)}
+\rfoot{Page \thepage}
+
+$if(pagestart)$
+\setcounter{page}{$pagestart$}
+$endif$
+
+
+%Format of title
+\newcommand{\titlesize}{\fontsize{22.0}{20pt}\selectfont}
+
+%Format of Keywords
+\def\keywords#1{%
+  \gdef\@keywords{\begin{minipage}{\textwidth}{\normalsize \textbf{Keywords}}\\ \parbox[t]{\textwidth}{#1}\end{minipage}}}
+\let\@keywords\@empty
+
+%Format of abstract
+
+\newbox\absbox
+\def\abstract{\lrbox\absbox\minipage{\textwidth}%
+  \normalsize
+    \section*{\normalsize\color{black}\textbf{Abstract}}\vskip -1mm%
+  }
+\def\endabstract{\endminipage\endlrbox}
+
+%Footnote with affiliations
+\skip\footins 20pt plus  8pt
+%\gdef\footnoterule{}
+\def\footnoterule{\kern-3\p@
+  \hrule \@width \columnwidth \kern 3mm}
+
+
+\newcommand{\email}[1]{%
+  \gdef\@email{%
+\footnotetext[0]{ Email: #1}}}
+\let\@email\@empty
+
+\def\corrauth#1{\gdef\@corrauth{%
+\footnotetext[0]{\par\vskip-3pt\noindent\textbf{Corresponding author:}\\ #1}}}
+\let\@corrauth\@empty
+
+
+$if(highlighting-macros)$
+$highlighting-macros$
+$endif$
+
+
+%this helps with the tightlist error
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+
+
+\makeatother % ______________PUT FUNCTIONS AND STUFF ABOVE THIS LINE
+
+
+%Abstract
+$if(abstract)$
+
+\begin{abstract}
+
+\colorbox{gray!10}{
+\begin{minipage}{\textwidth}
+\noindent{$abstract$}
+\end{minipage}
+}
+
+\end{abstract}
+
+$endif$
+
+
+\begin{document}
+
+% _______________ FRONT PAGE STUFF _______________ 
+\begin{sf}
+% \global\@topnum\z@ % don't let figures interfere with this
+{\raggedright % Note the extra {
+\begin{minipage}[t]{120mm}
+  \vskip 2.5pt%
+{\raggedright\titlesize\textbf{$title$} \par}
+    \end{minipage}\hspace{7mm}\begin{minipage}[t]{40.0mm}
+\hbox{}\includegraphics[height=19mm]{MM_Logo}\\
+\scriptsize{Issue $issuenumber$, pp. $pagenumbers$}\\ 
+\scriptsize{$citeas$ ($volumeyear$)}\\
+$if(DOI)$
+\scriptsize{DOI: $DOI$}\\
+$endif$
+\end{minipage}
+
+{\par\large%
+      \vspace*{5mm}
+      \lineskip .5em%
+$for(author)$
+                               \textbf{$author.name$} \hskip 15pt \emph{\small $author.affiliation$}      \vskip 5pt 
+ $endfor$
+     \vskip 20pt%
+         {\noindent\usebox\absbox\par}
+         
+ $if(keywords)$
+    {\vspace{15pt}%
+      {\noindent\normalsize \textbf{Keywords:} $keywords$ }\par}
+      \vspace{6mm}
+      \par%
+$endif$    
+ 
+ 
+ 
+  }}
+\end{sf}
+
+% ___________END OF FRONT PAGE STUFF________________
+
+
+ 
+ % Use "Eq" instead of "Equation" for equation citations.
+ $body$
+
+
+\end{document}

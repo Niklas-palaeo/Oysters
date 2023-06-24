@@ -1,0 +1,64 @@
+---
+title: "Template Title"
+author: "Niklas Hausmann"
+date: "Today"
+output: pdf_document
+---
+
+# Libraries 
+```{r Libraries,echo=FALSE,message = FALSE,warning = FALSE}
+knitr::opts_chunk$set(echo=FALSE,message = FALSE,warning = FALSE)
+
+{
+  pacman::p_load(
+    here,
+    janitor,
+    tidyverse,
+    cowplot,ggx,
+    patchwork,
+    RColorBrewer) 
+  
+  theme_set(theme_cowplot())
+}
+
+source(here("HingeToLength.R"))
+
+```
+
+# Data
+
+```{r}
+
+Brief_Res <- readRDS(here("data","Brief_res.rds")) %>% 
+                mutate(length=hingetolength(hinge))
+```
+
+
+
+# Stats
+
+```{r}
+# Extract statistical values
+age_summary <- summary(Brief_Res$age)
+length_summary <- summary(Brief_Res$length)
+hinge_summary <- summary(Brief_Res$hinge)
+
+# Create a table
+table_data <- data.frame(
+  Variable = c("Age", "Length", "Hinge"),
+  Minimum = c(age_summary["Min."], length_summary["Min."], hinge_summary["Min."]),
+  `1st Quartile` = c(age_summary["1st Qu."], length_summary["1st Qu."], hinge_summary["1st Qu."]),
+  Median = c(age_summary["Median"], length_summary["Median"], hinge_summary["Median"]),
+  Mean = c(age_summary["Mean"], length_summary["Mean"], hinge_summary["Mean"]),
+  `3rd Quartile` = c(age_summary["3rd Qu."], length_summary["3rd Qu."], hinge_summary["3rd Qu."]),
+  Maximum = c(age_summary["Max."], length_summary["Max."], hinge_summary["Max."])
+)
+
+# Convert table to markdown
+markdown_table <- knitr::kable(table_data, format = "markdown")
+
+# Print the markdown table
+print(markdown_table)
+
+```
+

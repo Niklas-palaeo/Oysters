@@ -1,0 +1,1370 @@
+---
+title: "Regression Analysis"
+author: "Niklas Hausmann"
+date: "Today"
+output: pdf_document
+---
+
+# Libraries 
+```{r Libraries,echo=FALSE,message = FALSE,warning = FALSE}
+knitr::opts_chunk$set(echo=FALSE,message = FALSE,warning = FALSE)
+
+{
+  pacman::p_load(
+    here,
+    janitor,
+    tidyverse,rwa,viridis,
+    cowplot,ggx,
+    patchwork,
+    RColorBrewer) 
+  
+  theme_set(theme_cowplot())
+}
+```
+
+# Intrasite analysis
+## Data input
+```{r}
+Brief_Res <- readRDS(here("data","Brief_res.rds"))
+Strat_sites_stats <- readRDS(here("Data","Strat_sites_stats.rds"))
+Weights <- readRDS(here("Data","Weights.rds"))
+```
+
+## Sites 
+### Site data
+```{r}
+Krabbesholm <- Brief_Res %>%
+  filter(site == "FHM 4383 Krabbesholm II") %>%
+  filter(grid_square=="104/100") %>% 
+  filter(age_readable == TRUE) %>% 
+  mutate(layer = factor(level,
+                        levels = c("16",
+                                   "15",
+                                   "14",
+                                   "13",
+                                   "12",
+                                   "11",
+                                   "10",
+                                   "8",
+                                   "7",
+                                   "6",
+                                   "5",
+                                   "4",
+                                   "3",
+                                   "2"
+                        )
+  )
+  )
+
+Bjørnsholm <- Brief_Res %>% 
+  filter(site == "FHM 2911 Bjørnsholm") %>%
+  mutate(layer = factor(layer,
+                        levels = c("16 (level or sample)",
+                                   "15 (level or sample)",
+                                   "14 (level or sample)",
+                                   "13 (level or sample)",
+                                   "11 (level or sample)",
+                                   "10 (level or sample)",
+                                   "9 (level or sample)",
+                                   "8 (level or sample)",
+                                   "7 (level or sample)",
+                                   "6 (level or sample)",
+                                   "5 (level or sample)",
+                                   "4 (level or sample)",
+                                   "3 (level or sample)",
+                                   "2 (level or sample)",
+                                   "1 (level or sample)",
+                                   "Level 7",
+                                   "Level 6",
+                                   "Level 3",
+                                   "Level 2",
+                                   "Level 1"
+                        )
+                        
+  )
+  ) %>% 
+  filter(!is.na(layer))
+
+Visborg_6814_A02  <- Brief_Res %>%
+  filter(site == "ÅHM 6814 Visborg",
+         grid_square=="A02") %>% 
+  filter(age_readable == TRUE) %>% 
+  mutate(layer = factor(level,
+                        levels = c(
+                          "71-76 cm deep",
+                          "61-71 cm deep",
+                          "48-61 cm deep",
+                          "38-48 cm deep"
+                        )))
+
+Visborg_6814_A13  <- Brief_Res %>%
+  filter(site == "ÅHM 6814 Visborg",
+         grid_square=="A13") %>% 
+  filter(age_readable == TRUE) %>% 
+  mutate(layer = factor(level,
+                        levels = c(
+                          "70-75 cm deep",
+                          "60-70 cm deep",
+                          "50-60 cm deep",
+                          "40-50 cm deep",
+                          "30-40 cm deep"
+                        )))
+
+Visborg_6814_A16  <- Brief_Res %>%
+  filter(site == "ÅHM 6814 Visborg",
+         grid_square=="A16") %>% 
+  filter(age_readable == TRUE) %>% 
+  mutate(layer = factor(level,
+                        levels = c(
+                          "55-60 cm deep",
+                          "40-50 cm deep",
+                          "30-40 cm deep"
+                        )))
+
+Ertebølle  <- Brief_Res %>%
+  filter(site == "FHM 2168 Ertebølle") %>% 
+  filter(age_readable == TRUE) %>% 
+  filter(grepl("J", grid_square))  %>% # removes layers outside sample column
+  mutate(layer = factor(
+    layer,
+    levels = c("26","25","24","23","22","21","20","19","18","15","14","12","11","10","8","7")
+  ))
+
+
+Hjarnø_Sund  <- Brief_Res %>%
+  filter(site == "FHM 5184 Hjarnø Sund") %>% 
+  filter(age_readable == TRUE) %>% 
+  mutate(layer = factor(
+    grid_square,
+    levels = c("1",
+               "3",
+               "4",
+               "5",
+               "6",
+               "7",
+               "8"
+    )
+  ))
+
+Eskilsø  <- Brief_Res %>%
+  filter(site == "MFG 158/99 Eskilsø SØ") %>% 
+  filter(age_readable == TRUE) %>% 
+  mutate(layer = factor(layer,
+                        levels = c(
+                          "G layer 6",
+                          "A layer",
+                          "E layer",
+                          "F layer 2",
+                          "D layer 12",
+                          "C layer 11",
+                          "B layer 10+14"
+                        )))
+
+
+Norsminde  <- Brief_Res %>%
+  filter(site == "FHM 2911 Norsminde") %>% 
+  filter(age_readable == TRUE) %>% 
+  mutate(layer = factor(layer,
+                        levels = c(
+                          "10", "9",
+                          "8",
+                          "7",
+                          "6",
+                          "5",
+                          "4",
+                          "3",
+                          "2", "1"
+                        )))
+
+
+
+```
+
+### Havnø
+```{r}
+
+Havnø  <- Brief_Res %>%
+  filter(site == "FHM 4014 Havnø") %>% 
+  filter(str_detect(site_ref_and_shell_no, "HAV")) %>%
+  mutate(layer = str_extract(site_ref_and_shell_no, "(?<=HAV)\\d+")) %>% 
+  filter(age_readable == TRUE) %>% 
+  mutate(layer = factor(layer,
+                        levels = c(
+                          "3",
+                          "2", "1"
+                        )))
+
+```
+
+### Graphs
+#### Krabbesholm
+```{r}
+
+Krabbesholm <- Brief_Res %>%
+  filter(site == "FHM 4383 Krabbesholm II") %>%
+  filter(grid_square=="104/100") %>% 
+  filter(age_readable == TRUE) %>%   
+  mutate(rate=hinge/age) %>%
+
+  mutate(layer = factor(level,
+                        levels = c("16",
+                                   "15",
+                                   "14",
+                                   "13",
+                                   "12",
+                                   "11",
+                                   "10",
+                                   "8",
+                                   "7",
+                                   "6",
+                                   "5",
+                                   "4",
+                                   "3",
+                                   "2"
+                                )
+                        )
+         )
+
+
+Krabbesholm_A <- 
+  Krabbesholm %>% 
+  ggplot(aes(x = layer, y = hinge, fill = cultural_epoch,col=cultural_epoch)) +
+  geom_smooth(aes(group=1),col="grey85")+
+  geom_boxplot(varwidth = TRUE,alpha=0.7)+
+  # geom_point(alpha=0.6,position = position_dodge(0.3))+
+  scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  scale_color_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  theme_cowplot() +
+  theme(legend.position = "none")+
+  coord_flip()+
+  ylim(0,NA)+
+  xlab("")+
+  ylab("Hinge size")
+
+
+
+Krabbesholm_B <- 
+  Krabbesholm %>% 
+  ggplot(aes(x = layer, y = age, fill = cultural_epoch,col=cultural_epoch)) +
+    geom_smooth(aes(group=1),col="grey85")+
+  geom_hline(yintercept = 0, alpha = 0.5)+ 
+  geom_boxplot(varwidth = TRUE,alpha=0.7)+
+  # geom_point(alpha=0.6,position = position_dodge(0.3))+
+  scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  scale_color_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  theme_cowplot() +
+  # ggtitle("", subtitle = "Age")+
+  theme(legend.position = "none")+
+  coord_flip()+
+  ylim(0,20)+
+  ggeasy::easy_remove_y_axis()+
+  xlab("")+
+  ylab("Age")
+
+
+Krabbesholm_C <- 
+  Krabbesholm %>% 
+  ggplot(aes(x = layer, y = residuals, fill = cultural_epoch,col=cultural_epoch)) +
+    geom_smooth(aes(group=1),col="grey85")+
+  geom_hline(yintercept = 0, alpha = 0.5)+ 
+  geom_boxplot(varwidth = TRUE,alpha=0.7)+
+  # geom_point(alpha=0.6,position = position_dodge(0.3))+
+  scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  scale_color_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  theme_cowplot() +
+  # ggtitle("", subtitle = "Residuals")+
+  theme(legend.position = "none")+
+  coord_flip()+
+  ggeasy::easy_remove_y_axis()+
+  xlab("")+
+  ylab("Residuals")
+
+Krabbesholm_D <- 
+  Krabbesholm %>% 
+  ggplot(aes(x = layer, y = rate, fill = cultural_epoch,col=cultural_epoch)) +
+    geom_smooth(aes(group=1),col="grey85")+
+  geom_hline(yintercept = 0, alpha = 0.5)+ 
+  geom_boxplot(varwidth = TRUE,alpha=0.7)+
+  # geom_point(alpha=0.6,position = position_dodge(0.3))+
+  scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  scale_color_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  theme_cowplot() +
+  # ggtitle("", subtitle = "Rate")+
+  theme(legend.position = "none")+
+  coord_flip()+
+  ggeasy::easy_remove_y_axis()+
+  xlab("")+
+  ylab("Rate")
+
+
+Krabbesholm_A+Krabbesholm_B+Krabbesholm_C+plot_annotation(tag_levels = "A", title = "FHM 4383 Krabbesholm")
+
+
+
+
+
+#
+
+
+```
+
+#### Bjørnsholm
+```{r}
+
+# source(here("Data","Extract from sites","Eskilsø.R"))
+# source(here("Data","Extract from sites","Havnø.R"))
+# source(here("Data","Extract from sites","Krabbesholm II.R"))
+# source(here("Data","Extract from sites","Norsminde.R"))
+# source(here("Data","Extract from sites","Bjørnsholm.R"))
+Bjørnsholm <- Brief_Res %>% 
+  # left_join(Residuals %>% pull(residuals)) %>% 
+filter(site == "FHM 2911 Bjørnsholm") %>%
+  mutate(layer = factor(layer,
+                        levels = c("16 (level or sample)",
+                                   "15 (level or sample)",
+                                  "14 (level or sample)",
+                                  "13 (level or sample)",
+                                  "11 (level or sample)",
+                                  "10 (level or sample)",
+                                  "9 (level or sample)",
+                                  "8 (level or sample)",
+                                  "7 (level or sample)",
+                                  "6 (level or sample)",
+                                  "5 (level or sample)",
+                                  "4 (level or sample)",
+                                  "3 (level or sample)",
+                                  "2 (level or sample)",
+                                  "1 (level or sample)",
+                                  "Level 7",
+                                  "Level 6",
+                                  "Level 3",
+                                  "Level 2",
+                                  "Level 1"
+                                  )
+                              
+                        )
+    ) %>% 
+    filter(!is.na(layer))
+
+Bjørnsholm_A <- 
+Bjørnsholm %>%
+  ggplot(aes(x = layer, y = hinge, fill = cultural_epoch,col=cultural_epoch)) +
+  geom_smooth(aes(group=1),col="grey85")+
+  geom_boxplot(varwidth = TRUE,alpha=0.7)+
+  # geom_point(alpha=0.6,position = position_dodge(0.3))+
+  scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  scale_color_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  theme_cowplot() +
+  ggtitle("Bjørnsholm", subtitle = "Hinge")+
+  theme(legend.position = "none")+
+  coord_flip()+
+  ylim(0,NA)+
+  xlab("")+
+  ylab("Hinge size")
+
+Bjørnsholm_B <- 
+Bjørnsholm %>%
+  ggplot(aes(x = layer, y = age, fill = cultural_epoch,col=cultural_epoch)) +
+    geom_smooth(aes(group=1),col="grey85")+
+  geom_hline(yintercept = 0, alpha = 0.5)+ 
+  geom_boxplot(varwidth = TRUE,alpha=0.7)+
+  # geom_point(alpha=0.6,position = position_dodge(0.3))+
+  scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  scale_color_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  theme_cowplot() +
+  ggtitle("", subtitle = "Age")+
+  theme(legend.position = "none")+
+  coord_flip()+
+  ggeasy::easy_remove_y_axis()+
+  xlab("")+
+  ylab("Age")
+
+Bjørnsholm_C <- 
+Bjørnsholm %>%
+  ggplot(aes(x = layer, y = residuals, fill = cultural_epoch,col=cultural_epoch)) +
+    geom_smooth(aes(group=1),col="grey85")+
+  geom_hline(yintercept = 0, alpha = 0.5)+ 
+  geom_boxplot(varwidth = TRUE,alpha=0.7)+
+  # geom_point(alpha=0.6,position = position_dodge(0.3))+
+  scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  scale_color_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  theme_cowplot() +
+  ggtitle("", subtitle = "Residuals")+
+  theme(legend.position = "none")+
+  coord_flip()+
+  ggeasy::easy_remove_y_axis()+
+  xlab("")+
+  ylab("Residuals")
+
+Bjørnsholm_A+Bjørnsholm_B+Bjørnsholm_C+plot_annotation(tag_levels = "A")
+
+```
+
+####  Visborg ÅHM 6814
+```{r}
+#A16
+{
+Visborg_6814_A16  <- Brief_Res %>%
+  filter(site == "ÅHM 6814 Visborg",
+         grid_square=="A16") %>% 
+  filter(age_readable == TRUE) %>% 
+  mutate(layer = factor(level,
+                        levels = c(
+                          "55-60 cm deep",
+                          "40-50 cm deep",
+                          "30-40 cm deep"
+                        )))
+
+
+Visborg_6814_A16_A <- 
+Visborg_6814_A16 %>%
+  ggplot(aes(x = layer, y = hinge, fill = cultural_epoch,col=cultural_epoch)) +
+  geom_smooth(aes(group=1),col="grey85")+
+  geom_boxplot(varwidth = TRUE,alpha=0.7)+
+  # geom_point(alpha=0.6,position = position_dodge(0.3))+
+  scale_fill_manual(values = c(viridis_pal()(4)[3], viridis_pal()(4)[3])) +# first one is 3 and not 2 because they are all Ertebølle
+  scale_color_manual(values = c(viridis_pal()(4)[3], viridis_pal()(4)[3])) +
+  theme_cowplot() +
+  ggtitle("A16", subtitle = "Hinge")+
+  theme(legend.position = "none")+
+  coord_flip()+
+  ylim(0,12)+
+  xlab("")+
+  ylab("Hinge size")
+
+
+Visborg_6814_A16_B <- 
+Visborg_6814_A16 %>%
+  ggplot(aes(x = layer, y = age, fill = cultural_epoch,col=cultural_epoch)) +
+    geom_smooth(aes(group=1),col="grey85")+
+  geom_hline(yintercept = 0, alpha = 0.5)+ 
+  geom_boxplot(varwidth = TRUE,alpha=0.7)+
+  # geom_point(alpha=0.6,position = position_dodge(0.3))+
+  scale_fill_manual(values = c(viridis_pal()(4)[3], viridis_pal()(4)[3])) +
+  scale_color_manual(values = c(viridis_pal()(4)[3], viridis_pal()(4)[3])) +
+  theme_cowplot() +
+  ggtitle("", subtitle = "Age")+
+  theme(legend.position = "none")+
+  coord_flip()+
+  ggeasy::easy_remove_y_axis()+
+  ylim(0,10)+
+  xlab("")+
+  ylab("Age")
+
+Visborg_6814_A16_C <- 
+Visborg_6814_A16 %>%
+  ggplot(aes(x = layer, y = residuals, fill = cultural_epoch,col=cultural_epoch)) +
+    geom_smooth(aes(group=1),col="grey85")+
+  geom_hline(yintercept = 0, alpha = 0.5)+ 
+  geom_boxplot(varwidth = TRUE,alpha=0.7)+
+  # geom_point(alpha=0.6,position = position_dodge(0.3))+
+  scale_fill_manual(values = c(viridis_pal()(4)[3], viridis_pal()(4)[3])) +
+  scale_color_manual(values = c(viridis_pal()(4)[3], viridis_pal()(4)[3])) +
+  theme_cowplot() +
+  ggtitle("", subtitle = "Residuals")+
+  theme(legend.position = "none")+
+  coord_flip()+
+      ylim(-6,6)+
+
+  ggeasy::easy_remove_y_axis()+
+  xlab("")+
+  ylab("Residuals")
+
+A16 <- Visborg_6814_A16_A+Visborg_6814_A16_B+Visborg_6814_A16_C+plot_annotation(tag_levels = "A")
+}
+
+
+# A13
+{
+Visborg_6814_A13  <- Brief_Res %>%
+  filter(site == "ÅHM 6814 Visborg",
+         grid_square=="A13") %>% 
+  filter(age_readable == TRUE) %>% 
+  mutate(layer = factor(level,
+                        levels = c(
+                          "70-75 cm deep",
+                          "60-70 cm deep",
+                          "50-60 cm deep",
+                          "40-50 cm deep",
+                          "30-40 cm deep"
+                        )))
+
+Visborg_6814_A13_A <- 
+Visborg_6814_A13 %>%
+  ggplot(aes(x = layer, y = hinge, fill = cultural_epoch,col=cultural_epoch)) +
+  geom_smooth(aes(group=1),col="grey85")+
+  geom_boxplot(varwidth = TRUE,alpha=0.7)+
+  # geom_point(alpha=0.6,position = position_dodge(0.3))+
+  scale_fill_manual(values = c(viridis_pal()(4)[3], viridis_pal()(4)[3])) +# first one is 3 and not 2 because they are all Ertebølle
+  scale_color_manual(values = c(viridis_pal()(4)[3], viridis_pal()(4)[3])) +
+  theme_cowplot() +
+  ggtitle("ÅHM 6814 Visborg A13",subtitle = "Hinge")+
+  theme(legend.position = "none")+
+  coord_flip()+
+  ylim(0,12)+
+  xlab("")+
+  ylab("Hinge size")
+
+
+Visborg_6814_A13_B <- 
+Visborg_6814_A13 %>%
+  ggplot(aes(x = layer, y = age, fill = cultural_epoch,col=cultural_epoch)) +
+    geom_smooth(aes(group=1),col="grey85")+
+  geom_hline(yintercept = 0, alpha = 0.5)+ 
+  geom_boxplot(varwidth = TRUE,alpha=0.7)+
+  # geom_point(alpha=0.6,position = position_dodge(0.3))+
+  scale_fill_manual(values = c(viridis_pal()(4)[3], viridis_pal()(4)[3])) +
+  scale_color_manual(values = c(viridis_pal()(4)[3], viridis_pal()(4)[3])) +
+  theme_cowplot() +
+  ggtitle("", subtitle = "Age")+
+  theme(legend.position = "none")+
+  coord_flip()+
+    ylim(0,10)+
+  ggeasy::easy_remove_y_axis()+
+  xlab("")+
+  ylab("Age")
+
+Visborg_6814_A13_C <- 
+Visborg_6814_A13 %>%
+  ggplot(aes(x = layer, y = residuals, fill = cultural_epoch,col=cultural_epoch)) +
+    geom_smooth(aes(group=1),col="grey85")+
+  geom_hline(yintercept = 0, alpha = 0.5)+ 
+  geom_boxplot(varwidth = TRUE,alpha=0.7)+
+  # geom_point(alpha=0.6,position = position_dodge(0.3))+
+  scale_fill_manual(values = c(viridis_pal()(4)[3], viridis_pal()(4)[3])) +
+  scale_color_manual(values = c(viridis_pal()(4)[3], viridis_pal()(4)[3])) +
+  theme_cowplot() +
+  ggtitle("", subtitle = "Residuals")+
+  theme(legend.position = "none")+
+  coord_flip()+
+      ylim(-6,6)+
+
+  ggeasy::easy_remove_y_axis()+
+  xlab("")+
+  ylab("Residuals")
+
+A13 <- Visborg_6814_A13_A+Visborg_6814_A13_B+Visborg_6814_A13_C+plot_annotation(tag_levels = "A")
+}
+
+
+# A02
+{
+Visborg_6814_A02  <- Brief_Res %>%
+  filter(site == "ÅHM 6814 Visborg",
+         grid_square=="A02") %>% 
+  filter(age_readable == TRUE) %>% 
+  mutate(layer = factor(level,
+                        levels = c(
+                          "71-76 cm deep",
+                          "61-71 cm deep",
+                          "48-61 cm deep",
+                          "38-48 cm deep"
+                        )))
+
+Visborg_6814_A02_A <- 
+Visborg_6814_A02 %>%
+  ggplot(aes(x = layer, y = hinge, fill = cultural_epoch,col=cultural_epoch)) +
+  geom_smooth(aes(group=1),col="grey85")+
+  geom_boxplot(varwidth = TRUE,alpha=0.7)+
+  # geom_point(alpha=0.6,position = position_dodge(0.3))+
+  scale_fill_manual(values = c(viridis_pal()(4)[3], viridis_pal()(4)[3])) +# first one is 3 and not 2 because they are all Ertebølle
+  scale_color_manual(values = c(viridis_pal()(4)[3], viridis_pal()(4)[3])) +
+  theme_cowplot() +
+  ggtitle( "ÅHM 6814 Visborg A02",subtitle = "Hinge")+
+  theme(legend.position = "none")+
+  coord_flip()+
+  ylim(0,12)+
+  xlab("")+
+  ylab("Hinge size")
+
+
+Visborg_6814_A02_B <- 
+Visborg_6814_A02 %>%
+  ggplot(aes(x = layer, y = age, fill = cultural_epoch,col=cultural_epoch)) +
+    geom_smooth(aes(group=1),col="grey85")+
+  geom_hline(yintercept = 0, alpha = 0.5)+ 
+  geom_boxplot(varwidth = TRUE,alpha=0.7)+
+  # geom_point(alpha=0.6,position = position_dodge(0.3))+
+  scale_fill_manual(values = c(viridis_pal()(4)[3], viridis_pal()(4)[3])) +
+  scale_color_manual(values = c(viridis_pal()(4)[3], viridis_pal()(4)[3])) +
+  theme_cowplot() +
+  ggtitle("", subtitle = "Age")+
+  theme(legend.position = "none")+
+  coord_flip()+
+    ylim(0,10)+
+  ggeasy::easy_remove_y_axis()+
+  xlab("")+
+  ylab("Age")
+
+Visborg_6814_A02_C <- 
+Visborg_6814_A02 %>%
+  ggplot(aes(x = layer, y = residuals, fill = cultural_epoch,col=cultural_epoch)) +
+    geom_smooth(aes(group=1),col="grey85")+
+  geom_hline(yintercept = 0, alpha = 0.5)+ 
+  geom_boxplot(varwidth = TRUE,alpha=0.7)+
+  # geom_point(alpha=0.6,position = position_dodge(0.3))+
+  scale_fill_manual(values = c(viridis_pal()(4)[3], viridis_pal()(4)[3])) +
+  scale_color_manual(values = c(viridis_pal()(4)[3], viridis_pal()(4)[3])) +
+  theme_cowplot() +
+  ggtitle("", subtitle = "Residuals")+
+  theme(legend.position = "none")+
+  coord_flip()+
+    ylim(-6,6)+
+  ggeasy::easy_remove_y_axis()+
+  xlab("")+
+  ylab("Residuals")
+
+A02 <- Visborg_6814_A02_A+Visborg_6814_A02_B+Visborg_6814_A02_C+plot_annotation(tag_levels = "A")
+}
+
+A02/A13/A16+plot_annotation(title = "Visborg ÅHM 6814")
+
+```
+
+#### Ertebølle
+```{r}
+Ertebølle  <- Brief_Res %>%
+  filter(site == "FHM 2168 Ertebølle") %>% 
+  filter(age_readable == TRUE) %>% 
+  filter(grepl("J", grid_square))  %>% # removes layers outside sample column
+  mutate(layer = factor(
+    layer,
+    levels = c("26","25","24","23","22","21","20","19","18","15","14","12","11","10","8","7")
+))
+
+
+Ertebølle_A <- 
+Ertebølle %>%
+  ggplot(aes(x = layer, y = hinge, fill = cultural_epoch,col=cultural_epoch)) +
+  geom_smooth(aes(group=1),col="grey85")+
+  geom_boxplot(varwidth = TRUE,alpha=0.7)+
+  # geom_point(alpha=0.6,position = position_dodge(0.3))+
+  scale_fill_manual(values = c(viridis_pal()(4)[3], viridis_pal()(4)[3])) +
+  scale_color_manual(values = c(viridis_pal()(4)[3], viridis_pal()(4)[3])) +
+  theme_cowplot() +
+  ggtitle("Ertebølle", subtitle = "Hinge")+
+  theme(legend.position = "none")+
+  coord_flip()+
+  ylim(0,NA)+
+  xlab("")+
+  ylab("Hinge size")
+
+Ertebølle_B <- 
+Ertebølle %>%
+  ggplot(aes(x = layer, y = age, fill = cultural_epoch,col=cultural_epoch)) +
+    geom_smooth(aes(group=1),col="grey85")+
+  geom_hline(yintercept = 0, alpha = 0.5)+ 
+  geom_boxplot(varwidth = TRUE,alpha=0.7)+
+  # geom_point(alpha=0.6,position = position_dodge(0.3))+
+  scale_fill_manual(values = c(viridis_pal()(4)[3], viridis_pal()(4)[3])) +
+  scale_color_manual(values = c(viridis_pal()(4)[3], viridis_pal()(4)[3])) +
+  theme_cowplot() +
+  ggtitle("", subtitle = "Age")+
+  theme(legend.position = "none")+
+  coord_flip()+
+  ggeasy::easy_remove_y_axis()+
+  xlab("")+
+  ylab("Age")
+
+Ertebølle_C <- 
+Ertebølle %>%
+  ggplot(aes(x = layer, y = residuals, fill = cultural_epoch,col=cultural_epoch)) +
+    geom_smooth(aes(group=1),col="grey85")+
+  geom_hline(yintercept = 0, alpha = 0.5)+ 
+  geom_boxplot(varwidth = TRUE,alpha=0.7)+
+  # geom_point(alpha=0.6,position = position_dodge(0.3))+
+  scale_fill_manual(values = c(viridis_pal()(4)[3], viridis_pal()(4)[3])) +
+  scale_color_manual(values = c(viridis_pal()(4)[3], viridis_pal()(4)[3])) +
+  theme_cowplot() +
+  ggtitle("", subtitle = "Residuals")+
+  theme(legend.position = "none")+
+  coord_flip()+
+  ggeasy::easy_remove_y_axis()+
+  xlab("")+
+  ylab("Residuals")
+
+Ertebølle_A+Ertebølle_B+Ertebølle_C+plot_annotation(tag_levels = "A")
+
+```
+
+#### Hjarnø Sund
+```{r}
+
+
+Hjarnø_Sund  <- Brief_Res %>%
+  filter(site == "FHM 5184 Hjarnø Sund") %>% 
+  filter(age_readable == TRUE) %>% 
+  mutate(layer = factor(
+                        grid_square,
+                        levels = c("1",
+                                   "3",
+                                   "4",
+                                   "5",
+                                   "6",
+                                   "7",
+                                   "8"
+                                   )
+                      ))
+
+Hjarnø_Sund_A <- 
+Hjarnø_Sund %>%
+  ggplot(aes(x = layer, y = hinge, fill = cultural_epoch,col=cultural_epoch)) +
+  geom_smooth(aes(group=1),col="grey85")+
+  geom_boxplot(varwidth = TRUE,alpha=0.7)+
+  # geom_point(alpha=0.6,position = position_dodge(0.3))+
+  scale_fill_manual(values = c(viridis_pal()(4)[3], viridis_pal()(4)[3])) +
+  scale_color_manual(values = c(viridis_pal()(4)[3], viridis_pal()(4)[3])) +
+  theme_cowplot() +
+  ggtitle("Hjarnø Sund", subtitle = "Hinge")+
+  theme(legend.position = "none")+
+  coord_flip()+
+  ylim(0,NA)+
+  xlab("")+
+  ylab("Hinge size")
+
+Hjarnø_Sund_B <- 
+Hjarnø_Sund %>%
+  ggplot(aes(x = layer, y = age, fill = cultural_epoch,col=cultural_epoch)) +
+    geom_smooth(aes(group=1),col="grey85")+
+  geom_hline(yintercept = 0, alpha = 0.5)+ 
+  geom_boxplot(varwidth = TRUE,alpha=0.7)+
+  # geom_point(alpha=0.6,position = position_dodge(0.3))+
+  scale_fill_manual(values = c(viridis_pal()(4)[3], viridis_pal()(4)[3])) +
+  scale_color_manual(values = c(viridis_pal()(4)[3], viridis_pal()(4)[3])) +
+  theme_cowplot() +
+  ggtitle("", subtitle = "Age")+
+  theme(legend.position = "none")+
+  coord_flip()+
+  ggeasy::easy_remove_y_axis()+
+  xlab("")+
+  ylab("Age")
+
+Hjarnø_Sund_C <- 
+Hjarnø_Sund %>%
+  ggplot(aes(x = layer, y = residuals, fill = cultural_epoch,col=cultural_epoch)) +
+    geom_smooth(aes(group=1),col="grey85")+
+  geom_hline(yintercept = 0, alpha = 0.5)+ 
+  geom_boxplot(varwidth = TRUE,alpha=0.7)+
+  # geom_point(alpha=0.6,position = position_dodge(0.3))+
+  scale_fill_manual(values = c(viridis_pal()(4)[3], viridis_pal()(4)[3])) +
+  scale_color_manual(values = c(viridis_pal()(4)[3], viridis_pal()(4)[3])) +
+  theme_cowplot() +
+  ggtitle("", subtitle = "Residuals")+
+  theme(legend.position = "none")+
+  coord_flip()+
+  ggeasy::easy_remove_y_axis()+
+  xlab("")+
+  ylab("Residuals")
+
+Hjarnø_Sund_A+Hjarnø_Sund_B+Hjarnø_Sund_C+plot_annotation(tag_levels = "A")
+
+
+
+```
+
+#### Eskilsø
+```{r}
+# residuals stay the same but age changes.
+### NOT SURE WHAT IS UP WITH LAYER A, MAYBE NEOLITHIC? ###
+
+
+Eskilsø  <- Brief_Res %>%
+  filter(site == "MFG 158/99 Eskilsø SØ") %>% 
+  filter(age_readable == TRUE) %>% 
+  mutate(layer = factor(layer,
+                        levels = c(
+                          "G layer 6",
+                          "A layer",
+                          "E layer",
+                          "D layer 12",
+                          "F layer 2",
+                          "C layer 11",
+                          "B layer 10+14"
+                        )))
+
+
+Eskilsø_A <- 
+Eskilsø %>%
+  ggplot(aes(x = layer, y = hinge, fill = cultural_epoch,col=cultural_epoch)) +
+  geom_smooth(aes(group=1),col="grey85")+
+  geom_boxplot(varwidth = TRUE,alpha=0.7)+
+  # geom_point(alpha=0.6,position = position_dodge(0.3))+
+  scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  scale_color_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  theme_cowplot() +
+  # ggtitle("MFG 158/99Eskilsø Sø", subtitle = "Hinge")+
+  theme(legend.position = "none")+
+  coord_flip()+
+  ylim(0,NA)+
+  xlab("")+
+  ylab("Hinge size")
+
+
+Eskilsø_B <- 
+Eskilsø %>%
+  ggplot(aes(x = layer, y = age, fill = cultural_epoch,col=cultural_epoch)) +
+    geom_smooth(aes(group=1),col="grey85")+
+  geom_hline(yintercept = 0, alpha = 0.5)+ 
+  geom_boxplot(varwidth = TRUE,alpha=0.7)+
+  # geom_point(alpha=0.6,position = position_dodge(0.3))+
+  scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  scale_color_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  theme_cowplot() +
+  # ggtitle("", subtitle = "Age")+
+  theme(legend.position = "none")+
+  coord_flip()+
+  ggeasy::easy_remove_y_axis()+
+  xlab("")+
+  ylab("Age")
+
+Eskilsø_C <- 
+Eskilsø %>%
+  ggplot(aes(x = layer, y = residuals, fill = cultural_epoch,col=cultural_epoch)) +
+    geom_smooth(aes(group=1),col="grey85")+
+  geom_hline(yintercept = 0, alpha = 0.5)+ 
+  geom_boxplot(varwidth = TRUE,alpha=0.7)+
+  # geom_point(alpha=0.6,position = position_dodge(0.3))+
+  scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  scale_color_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  theme_cowplot() +
+  # ggtitle("", subtitle = "Residuals")+
+  theme(legend.position = "none")+
+  coord_flip()+
+  ggeasy::easy_remove_y_axis()+
+  xlab("")+
+  ylab("Residuals")
+
+Eskilsø_A+Eskilsø_B+Eskilsø_C+plot_annotation(tag_levels = "A",title = "MFG 158/99Eskilsø Sø")
+
+```
+
+#### Norsminde
+```{r}
+
+Norsminde  <- Brief_Res %>%
+  filter(site == "FHM 2911 Norsminde") %>% 
+  filter(age_readable == TRUE) %>% 
+  mutate(layer = factor(layer,
+                        levels = c(
+                          "10", "9",
+                          "8",
+                          "7",
+                          "6",
+                          "5",
+                          "4",
+                          "3",
+                          "2", "1"
+                        )))
+
+
+Norsminde_A <- 
+Norsminde %>%
+  ggplot(aes(x = layer, y = hinge, fill = cultural_epoch,col=cultural_epoch)) +
+  geom_smooth(aes(group=1),col="grey85")+
+  geom_boxplot(varwidth = TRUE,alpha=0.7)+
+  # geom_point(alpha=0.6,position = position_dodge(0.3))+
+  scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  scale_color_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  theme_cowplot() +
+  ggtitle("Norsminde", subtitle = "Hinge")+
+  theme(legend.position = "none")+
+  coord_flip()+
+  ylim(0,NA)+
+  xlab("")+
+  ylab("Hinge size")
+
+Norsminde_B <- 
+Norsminde %>%
+  ggplot(aes(x = layer, y = age, fill = cultural_epoch,col=cultural_epoch)) +
+    geom_smooth(aes(group=1),col="grey85")+
+  geom_hline(yintercept = 0, alpha = 0.5)+ 
+  geom_boxplot(varwidth = TRUE,alpha=0.7)+
+  # geom_point(alpha=0.6,position = position_dodge(0.3))+
+  scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  scale_color_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  theme_cowplot() +
+  ggtitle("", subtitle = "Age")+
+  theme(legend.position = "none")+
+  coord_flip()+
+  ggeasy::easy_remove_y_axis()+
+  xlab("")+
+  ylab("Age")
+
+Norsminde_C <- 
+Norsminde %>%
+  ggplot(aes(x = layer, y = residuals, fill = cultural_epoch,col=cultural_epoch)) +
+    geom_smooth(aes(group=1),col="grey85")+
+  geom_hline(yintercept = 0, alpha = 0.5)+ 
+  geom_boxplot(varwidth = TRUE,alpha=0.7)+
+  # geom_point(alpha=0.6,position = position_dodge(0.3))+
+  scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  scale_color_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  theme_cowplot() +
+  ggtitle("", subtitle = "Residuals")+
+  theme(legend.position = "none")+
+  coord_flip()+
+  ggeasy::easy_remove_y_axis()+
+  xlab("")+
+  ylab("Residuals")
+
+# Norsminde_A+Norsminde_B+Norsminde_C+plot_annotation(tag_levels = "A")
+
+
+```
+#### Havnø
+```{r}
+# Havnø_A <- 
+# Havnø %>%
+#   ggplot(aes(x = layer, y = hinge, fill = cultural_epoch,col=cultural_epoch)) +
+#   geom_smooth(aes(group=1),col="grey85")+
+#   geom_boxplot(varwidth = TRUE,alpha=0.7)+
+#   # geom_point(alpha=0.6,position = position_dodge(0.3))+
+#   scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+#   scale_color_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+#   theme_cowplot() +
+#   ggtitle("Havnø", subtitle = "Hinge")+
+#   theme(legend.position = "none")+
+#   coord_flip()+
+#   ylim(0,NA)+
+#   xlab("")+
+#   ylab("Hinge size")
+# 
+# Havnø_B <- 
+# Havnø %>%
+#   ggplot(aes(x = layer, y = age, fill = cultural_epoch,col=cultural_epoch)) +
+#     geom_smooth(aes(group=1),col="grey85")+
+#   geom_hline(yintercept = 0, alpha = 0.5)+ 
+#   geom_boxplot(varwidth = TRUE,alpha=0.7)+
+#   # geom_point(alpha=0.6,position = position_dodge(0.3))+
+#   scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+#   scale_color_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+#   theme_cowplot() +
+#   ggtitle("", subtitle = "Age")+
+#   theme(legend.position = "none")+
+#   coord_flip()+
+#   ggeasy::easy_remove_y_axis()+
+#   xlab("")+
+#   ylab("Age")
+# 
+# Havnø_C <- 
+# Havnø %>%
+#   ggplot(aes(x = layer, y = residuals, fill = cultural_epoch,col=cultural_epoch)) +
+#     geom_smooth(aes(group=1),col="grey85")+
+#   geom_hline(yintercept = 0, alpha = 0.5)+ 
+#   geom_boxplot(varwidth = TRUE,alpha=0.7)+
+#   # geom_point(alpha=0.6,position = position_dodge(0.3))+
+#   scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+#   scale_color_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+#   theme_cowplot() +
+#   ggtitle("", subtitle = "Residuals")+
+#   theme(legend.position = "none")+
+#   coord_flip()+
+#   ggeasy::easy_remove_y_axis()+
+#   xlab("")+
+#   ylab("Residuals")
+# 
+# # Havnø_A+Havnø_B+Havnø_C+plot_annotation(tag_levels = "A")
+```
+
+
+
+
+## Layer-based mean data (for Multiple Regression)
+```{r eval=FALSE, include=FALSE}
+# source("Multiple_regression.R")
+
+#Havnø NO P VALUE
+Havnø_means <- Havnø %>% 
+   select(age, layer, hinge, residuals) %>% 
+  na.omit() %>% 
+  group_by(layer) %>% 
+  summarise(age=mean(age,na.rm = FALSE),
+            hinge=mean(hinge, na.rm = FALSE),
+            residuals=mean(residuals, na.rm = FALSE)
+            )%>% 
+  mutate(
+    age_diff = age - lag(age, default = last(age)),
+    residuals_diff = residuals - lag(residuals, default = last(residuals))
+  )
+
+# Havnø_stats <- multiple_regression(Havnø_means) %>%
+#   as_tibble() %>%
+#   mutate(site="FHM 4014 Havnø")
+
+#Krabbesholm
+Krab_means <- Krabbesholm %>% 
+   select(age, layer, hinge, residuals) %>% 
+  na.omit() %>% 
+  group_by(layer) %>% 
+  summarise(age=mean(age,na.rm = FALSE),
+            hinge=mean(hinge, na.rm = FALSE),
+            residuals=mean(residuals, na.rm = FALSE)
+            )%>% 
+  mutate(
+    age_diff = age - lag(age, default = last(age)),
+    residuals_diff = residuals - lag(residuals, default = last(residuals))
+  )
+# 
+# Krab_stats <- multiple_regression(Krab_means) %>%
+#   as_tibble() %>%
+#   mutate(site="FHM 4383 Krabbesholm II")
+
+# Bjørnsholm
+Bjørns_means <- Bjørnsholm %>% 
+   select(age, layer, hinge, residuals) %>% 
+  na.omit() %>% 
+  group_by(layer) %>% 
+  summarise(age=mean(age,na.rm = FALSE),
+            hinge=mean(hinge, na.rm = FALSE),
+            residuals=mean(residuals, na.rm = FALSE)
+            )%>% 
+  mutate(
+    age_diff = age - lag(age, default = last(age)),
+    residuals_diff = residuals - lag(residuals, default = last(residuals))
+  )
+# Bjørns_stats <- multiple_regression(Bjørns_means) %>% 
+#   as_tibble() %>% 
+#   mutate(site="FHM 2911 Bjørnsholm")
+
+
+#Visborg
+{
+VisbA02_means <- Visborg_6814_A02 %>% 
+select(age, layer, hinge, residuals) %>% 
+  na.omit() %>% 
+  group_by(layer) %>% 
+  summarise(age=mean(age,na.rm = FALSE),
+            hinge=mean(hinge, na.rm = FALSE),
+            residuals=mean(residuals, na.rm = FALSE)
+            )%>% 
+  mutate(
+    age_diff = age - lag(age, default = last(age)),
+    residuals_diff = residuals - lag(residuals, default = last(residuals))
+  )
+# VisbA02_stats <-multiple_regression(VisbA02_means) %>%
+#   as_tibble() %>%
+#   mutate(site="ÅHM 6814 Visborg_A02")
+
+
+VisbA13_means <- Visborg_6814_A13 %>% 
+select(age, layer, hinge, residuals) %>% 
+  na.omit() %>% 
+  group_by(layer) %>% 
+  summarise(age=mean(age,na.rm = FALSE),
+            hinge=mean(hinge, na.rm = FALSE),
+            residuals=mean(residuals, na.rm = FALSE)
+            )%>% 
+  mutate(
+    age_diff = age - lag(age, default = last(age)),
+    residuals_diff = residuals - lag(residuals, default = last(residuals))
+  )
+# VisbA13_stats <-multiple_regression(VisbA13_means) %>%
+#   as_tibble() %>%
+#   mutate(site="ÅHM 6814 Visborg_A13")
+
+## NO P-VALUE
+# VisbA16_means <- Visborg_6814_A16 %>% 
+# select(age, layer, hinge, residuals) %>% 
+#   na.omit() %>% 
+#   group_by(layer) %>% 
+#   summarise(age=mean(age,na.rm = FALSE),
+#             hinge=mean(hinge, na.rm = FALSE),
+#             residuals=mean(residuals, na.rm = FALSE)
+#             )%>% 
+#   mutate(
+#     age_diff = age - lag(age, default = last(age)),
+#     residuals_diff = residuals - lag(residuals, default = last(residuals))
+#   )
+# VisbA16_stats <-multiple_regression(VisbA16_means) %>% 
+#   as_tibble() %>%
+#   mutate(site="ÅHM 6814 Visborg_A16")
+
+}
+# Visb_means <- Brief_Res %>%
+#   filter(site == "ÅHM 6814 Visborg") %>% 
+#   filter(age_readable == TRUE) %>% 
+#   mutate(layer = factor(level,
+#                         levels = c(
+#                           "71-76 cm deep",
+#                            "70-75 cm deep",
+#                           "61-71 cm deep",
+#                          "60-70 cm deep",
+#                            "55-60 cm deep",
+#                           "50-60 cm deep",
+#                           "48-61 cm deep",
+#                           "40-50 cm deep",
+#                           "38-48 cm deep",
+#                           "30-40 cm deep"
+# )))%>% 
+#   group_by(layer,grid_square) %>% 
+#   summarise(age=mean(age,na.rm = FALSE),
+#             hinge=mean(hinge, na.rm = FALSE),
+#             residuals=mean(residuals, na.rm = FALSE)
+#             )%>% 
+#   na.omit()
+
+
+# Visb_stats <-multiple_regression(Visb_means) %>% 
+#   as_tibble() %>% 
+#   mutate(site="ÅHM 6814 Visborg")
+
+
+
+# Ertebølle
+Erte_means <- Ertebølle %>% 
+  select(age, layer, hinge, residuals) %>% 
+  na.omit() %>% 
+  group_by(layer) %>% 
+  summarise(age=mean(age,na.rm = FALSE),
+            hinge=mean(hinge, na.rm = FALSE),
+            residuals=mean(residuals, na.rm = FALSE)
+            )%>% 
+  mutate(
+    age_diff = age - lag(age, default = last(age)),
+    residuals_diff = residuals - lag(residuals, default = last(residuals))
+  )
+# Erte_stats <-multiple_regression(Erte_means) %>% 
+#   as_tibble() %>% 
+#   mutate(site="FHM 2168 Ertebølle")
+
+# Hjarnø_Sund
+Hjarnø_means <- Hjarnø_Sund %>% 
+select(age, layer, hinge, residuals) %>% 
+  na.omit() %>% 
+  group_by(layer) %>% 
+  summarise(age=mean(age,na.rm = FALSE),
+            hinge=mean(hinge, na.rm = FALSE),
+            residuals=mean(residuals, na.rm = FALSE)
+            )%>% 
+  mutate(
+    age_diff = age - lag(age, default = last(age)),
+    residuals_diff = residuals - lag(residuals, default = last(residuals))
+  )
+# Hjarnø_stats <-multiple_regression(Hjarnø_means) %>% 
+#   as_tibble() %>% 
+#   mutate(site="FHM 5184 Hjarnø Sund")
+
+# Eskilsø
+Esk_means <- Eskilsø %>% 
+  select(age, layer, hinge, residuals) %>% 
+  na.omit() %>% 
+  group_by(layer) %>% 
+  summarise(age=mean(age,na.rm = FALSE),
+            hinge=mean(hinge, na.rm = FALSE),
+            residuals=mean(residuals, na.rm = FALSE)
+            ) %>% 
+  mutate(
+    age_diff = age - lag(age, default = last(age)),
+    residuals_diff = residuals - lag(residuals, default = last(residuals))
+  )
+# Esk_stats <-multiple_regression(Esk_means) %>% 
+#   as_tibble() %>% 
+#   mutate(site="MFG 158/99 Eskilsø SØ")
+
+
+# Norsminde
+Nors_means <-  Norsminde %>% 
+select(age, layer, hinge, residuals) %>% 
+  na.omit() %>% 
+  group_by(layer) %>% 
+  summarise(age=mean(age,na.rm = FALSE),
+            hinge=mean(hinge, na.rm = FALSE),
+            residuals=mean(residuals, na.rm = FALSE)
+            )%>% 
+  mutate(
+    age_diff = age - lag(age, default = last(age)),
+    residuals_diff = residuals - lag(residuals, default = last(residuals))
+  )
+# Nors_stats <-multiple_regression(Nors_means) %>% 
+#   as_tibble() %>% 
+#   mutate(site= "FHM 2911 Norsminde")
+
+
+# Strat_sites_means <- rbind(Krab_means,Bjørns_means,VisbA02_means,VisbA13_means,Erte_means,Hjarnø_means,Esk_means,Nors_means) %>%
+#   select(site,
+#          Standardized_Coeff_Age,Standardized_Coeff_Residuals,P_value_Age,P_value_Residuals)
+
+
+
+```
+
+
+
+## Relative Weights Analysis
+### Calculating relative weights from means
+```{r}
+
+Krab_weights <- Krab_means %>% 
+  # mutate(rate=hinge/age) %>%
+  rwa("hinge", c("age", "residuals")) %>% 
+  .$result %>% 
+  mutate(Sign.Rescaled.RelWeight = ifelse(Sign =="-", Rescaled.RelWeight * -1, Rescaled.RelWeight),
+         site = "FHM 4383 Krabbesholm II")
+
+Bjørns_weights <- Bjørns_means %>% 
+  rwa("hinge", c("age", "residuals")) %>% 
+  .$result %>% 
+  mutate(Sign.Rescaled.RelWeight = ifelse(Sign =="-", Rescaled.RelWeight * -1, Rescaled.RelWeight),
+         site = "FHM 2911 Bjørnsholm") 
+  
+Havnø_weights <- Havnø_means %>% 
+  # mutate(rate=hinge/age) %>%
+  rwa("hinge", c("age", "residuals")) %>% 
+  .$result %>% 
+  mutate(Sign.Rescaled.RelWeight = ifelse(Sign =="-", Rescaled.RelWeight * -1, Rescaled.RelWeight),
+         site = "FHM 4014 Havnø")
+
+# {
+#   
+#   
+# VisbA02_weights <- VisbA02_means %>% 
+#   rwa("hinge", c("age", "residuals"))  %>% 
+#   .$result %>% 
+#   mutate(Sign.Rescaled.RelWeight = ifelse(Sign =="-", Rescaled.RelWeight * -1, Rescaled.RelWeight),
+#         site = "ÅHM 6814 Visborg - A02") 
+#   
+# VisbA13_weights <- VisbA13_means %>% 
+#   rwa("hinge", c("age", "residuals"))  %>% 
+#   .$result %>% 
+#   mutate(Sign.Rescaled.RelWeight = ifelse(Sign =="-", Rescaled.RelWeight * -1, Rescaled.RelWeight),
+#         site = "ÅHM 6814 Visborg - A13")   
+#   
+#   } 
+
+Erte_weights <- Erte_means %>% 
+  rwa("hinge", c("age", "residuals"))  %>% 
+  .$result %>% 
+  mutate(Sign.Rescaled.RelWeight = ifelse(Sign =="-", Rescaled.RelWeight * -1, Rescaled.RelWeight),
+        site = "FHM 2168 Ertebølle") 
+ 
+
+Hjarnø_weights <- Hjarnø_means %>% 
+  rwa("hinge", c("age", "residuals")) %>% 
+  .$result %>% 
+  mutate(Sign.Rescaled.RelWeight = ifelse(Sign =="-", Rescaled.RelWeight * -1, Rescaled.RelWeight),
+         site = "FHM 5184 Hjarnø Sund") 
+ 
+
+Esk_weights <- Esk_means %>% 
+  rwa("hinge", c("age", "residuals"))  %>% 
+  .$result %>% 
+  mutate(Sign.Rescaled.RelWeight = ifelse(Sign =="-", Rescaled.RelWeight * -1, Rescaled.RelWeight),
+         site = "MFG 158/99 Eskilsø SØ") 
+ 
+
+Nors_weights <- Nors_means %>% 
+  rwa("hinge", c("age", "residuals")) %>% 
+  .$result %>% 
+  mutate(Sign.Rescaled.RelWeight = ifelse(Sign =="-", Rescaled.RelWeight * -1, Rescaled.RelWeight),
+         site = "FHM 2911 Norsminde") 
+ 
+
+Weights <- rbind(Krab_weights,Havnø_weights,Bjørns_weights,VisbA02_weights,VisbA13_weights,Erte_weights,Hjarnø_weights,Esk_weights,Nors_weights) %>% 
+  select(Variables,Raw.RelWeight, site) %>% 
+  rename(variables=Variables,rel_weight=Raw.RelWeight)
+
+# Extract age weights for each site
+age_weights <- Weights %>%
+  filter(variables == "age") %>%
+  arrange(desc(rel_weight)) %>%
+  select(site)
+
+# Reorder site factor levels based on age weights
+Weights$site <- factor(Weights$site, levels = age_weights$site)
+# Krab_data+Bjørns_data+Visb_data+Erte_data+Hjarnø_data+Esk_data+Nors_data+plot_layout(guides = "collect", ncol=1)
+
+
+```
+
+# Checking for Multicollinearity using Variance Inflation Factors (VIFs)
+```{r}
+#  VIFs provide an index that measures how much the variance of the estimated regression coefficients are increased because of multicollinearity.
+
+# I am using this function to check each site:
+library(car)
+calculate_vif <- function(data) {
+    data <- data %>%
+        filter(age_readable == TRUE) %>%
+        select(hinge, age, residuals) %>%
+        na.omit()
+    
+    model <- lm(hinge ~ age + residuals, data = data)
+    vif(model)
+}
+
+calculate_vif(Havnø)
+
+# The Variance Inflation Factor (VIF) quantifies the severity of multicollinearity in an ordinary least squares regression analysis. It provides an index that measures how much the variance (the square of the estimate's standard deviation) of an estimated regression coefficient is increased because of multicollinearity.
+# 
+# Here's a general guide to interpret VIF:
+# 
+# VIF = 1: The predictors are not correlated.
+# 1 < VIF < 5: The predictors have a moderate correlation, but it's usually not severe enough to require attention.
+# VIF >= 5: The predictors are highly correlated and you may have issues with multicollinearity.
+# In your case, if your VIF values are around 1, it means that there is very little multicollinearity between your predictor variables, and you do not need to worry about multicollinearity affecting your regression estimates.
+
+```
+
+
+
+
+
+---
+NOTHING TO RUN UNTIL HERE APART FROM DATA INPUT
+---
+
+### Plot
+
+```{r}
+
+Weights %>%
+  filter(!str_detect(site,"Visborg")) %>% 
+  filter(variables == "residuals") %>% 
+ggplot(aes(x = site, y = rel_weight, label = round(rel_weight, 2))) +
+  geom_segment(aes(y = 0.5,
+                   x = site,
+                   yend = rel_weight,
+                   xend = site),
+               color = "black") +
+  geom_point(stat = 'identity', size = 6, col= "cornflowerblue") +
+  # geom_text(color = "white", size = 2) +
+  labs(title = "Comparison of Relative Weights",
+       subtitle = "Age vs. Growth Rate",
+       y="Relative Importance of Growth Rate",
+       x= "") +
+    scale_y_continuous(labels = scales::percent, limits = c(0,1))+
+  coord_flip()+
+  theme_cowplot(20)
+```
+
+
+## Spotlight on outliers
+```{r}
+
+Krab_final_plot <- Krabbesholm_A+Krabbesholm_B+Krabbesholm_C+plot_annotation(title = "FHM 4383 Krabbesholm")
+
+
+  # these were based on too few shells, unless we can sort out their radiocarbon dates
+# VisA02 <- Visborg_6814_A02_A+Visborg_6814_A02_B+Visborg_6814_A02_C+plot_annotation(title = "ÅHM 6814 Visborg A02")
+# VisA13 <- Visborg_6814_A13_A+Visborg_6814_A13_B+Visborg_6814_A13_C+plot_annotation(title = "A13")
+
+Ert_final_plot <- Ertebølle_A+Ertebølle_B+Ertebølle_C+plot_annotation(title = "FHM 2168 Ertebølle")
+
+Hjarnø_final_plot <- Hjarnø_Sund_A+Hjarnø_Sund_B+Hjarnø_Sund_C+plot_annotation(title = "FHM 5184 Hjarnø Sund")
+
+Norsminde_final_plot <- Norsminde_A+Norsminde_B+Norsminde_C+plot_annotation(title = "FHM 2911 Norsminde")
+
+Bjørnsholm_final_plot <- Bjørnsholm_A+Bjørnsholm_B+Bjørnsholm_C+plot_annotation(title = "FHM 2911 Bjørnsholm")
+
+Esk_final_plot <- Eskilsø_A+Eskilsø_B+Eskilsø_C+plot_annotation(title = "MFG 158/99 Eskilsø")
+
+
+Krab_final_plot / Ert_final_plot / Hjarnø_final_plot / Norsminde_final_plot /
+  Bjørnsholm_final_plot / Esk_final_plot + plot_annotation(title = "Spotlight sites") +
+  plot_layout(heights = c(1 / 6, 1 / 6, 1 / 6, 1 / 6, 1 / 6, 1 / 6))
+
+```
+
+
+
+
