@@ -100,11 +100,11 @@ if (!require(propagate)) {
 }
 
 # Get predicted values and standard errors
-predictions <- predictNLS(model, newdata = data.frame(hinge = hinge_length$hinge))
+# predictions <- predictNLS(model, newdata = data.frame(hinge = hinge_length$hinge))
 
 # Add to the data frame
-hinge_length$est_length <- predictions$Predicted
-hinge_length$se_length <- sqrt(diag(predictions$MSPE))
+# hinge_length$est_length <- predictions$Predicted
+# hinge_length$se_length <- sqrt(diag(predictions$MSPE))
 
 
 # # Print the model summary to see the estimated parameters
@@ -118,8 +118,8 @@ ggplot(hinge_length) +
   aes(x = hinge, y = length)+
   geom_point() +aes(x = hinge, y = length)+
   # geom_line(data = predictions, aes(x = hinge, y = length), color = "red") +
-    geom_smooth(method = "lm", formula = y ~ log(x), se = TRUE, color = "darkblue")+
-  labs(x = "Hinge", y = "Length", title = "Hinge to Length Model Fit")
+    geom_smooth(method = "lm", formula = y ~ log(x), se = TRUE, color = "black")+
+  labs(x = "Hinge in mm", y = "Length in mm", title = "Hinge to Length Model Fit")
 
 
 # #Define parameters here based on summary

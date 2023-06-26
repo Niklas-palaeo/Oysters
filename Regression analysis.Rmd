@@ -1326,7 +1326,7 @@ ggplot(aes(x = site, y = rel_weight, label = round(rel_weight, 2))) +
                    yend = rel_weight,
                    xend = site),
                color = "black") +
-  geom_point(stat = 'identity', size = 6, col= "cornflowerblue") +
+  geom_point(stat = 'identity', size = 6, col= "black") +
   # geom_text(color = "white", size = 2) +
   labs(title = "Comparison of Relative Weights",
        subtitle = "Age vs. Growth Rate",
