@@ -27,7 +27,8 @@ knitr::opts_chunk$set(echo=FALSE,message = FALSE,warning = FALSE)
 ```{r}
 
 hinge_length <- read.csv(here("data","hinge_vs_total_length.csv")) %>% 
-  mutate(site=if_else(site=="Havn\xbf","Havnø",site))
+  mutate(site=if_else(site=="Havn\xbf","Havnø",site)) %>% 
+  add_row(site="FAKE_SITE_00",hinge=0.1,length=0.1)
 
 ```
 
