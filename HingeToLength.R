@@ -189,16 +189,17 @@ hingetolength <- function(hinge) {
                       "Lystrup", 13.74077848,  84.1760631,
                       "Lystrup",  13.4225214,  88.4627572,
                       "Lystrup", 12.10269055, 94.35696159,
-                      "Lystrup", 8.611223138, 85.89074074,
-                    NA,0.01,0.1
+                      "Lystrup", 8.611223138, 85.89074074#,
+                    # NA,0.01,0.1
                     )
 
     
-    
-  model <- nls(length ~ a + b*log(hinge), data = hinge_length, start = list(a = 1, b = 0.1))
-  a <- coef(model)[1]
-  b <- coef(model)[2]
-  est_length <- a + b * log(hinge)
+  model <- nls(length ~ I(b*log(hinge)), data = hinge_length, start = list(b = 0.5))
+  
+  # model <- nls(length ~ b*log(hinge), data = hinge_length, start = list(b = 50))
+  # a <- coef(model)[1]
+  b <- coef(model)[1]
+  est_length <- b * log(hinge)
 
   return(est_length)
 }

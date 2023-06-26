@@ -28,7 +28,7 @@ knitr::opts_chunk$set(echo=FALSE,message = FALSE,warning = FALSE)
 
 hinge_length <- read.csv(here("data","hinge_vs_total_length.csv")) %>% 
   mutate(site=if_else(site=="Havn\xbf","Havnø",site)) %>% 
-  add_row(site="FAKE_SITE_00",hinge=0.1,length=0.1)
+  add_row(site="FAKE_SITE_00",hinge=0.01,length=0.1)
 
 ```
 
@@ -89,37 +89,16 @@ Havnø_length_lm <- hinge_length %>%
 
 # Using nls() instead
 # Define the model
-model <- nls(length ~ a + b*log(hinge), data = hinge_length, start = list(a = 1, b = 0.1))
+model <- nls(length ~ I(b*log(hinge)), data = hinge_length, start = list(b = 5))
 
 
-#THIS IS NOW HingeToLength.R
-
-# Install and load the required package
-if (!require(propagate)) {
-  install.packages("propagate")
-  library(propagate)
-}
-
-# Get predicted values and standard errors
-# predictions <- predictNLS(model, newdata = data.frame(hinge = hinge_length$hinge))
-
-# Add to the data frame
-# hinge_length$est_length <- predictions$Predicted
-# hinge_length$se_length <- sqrt(diag(predictions$MSPE))
-
-
-# # Print the model summary to see the estimated parameters
-# # Create a new data frame for predictions
-# hinge_values <- seq(min(hinge_length$hinge), max(hinge_length$hinge), length.out = 100)
-# predicted_length <- predict(model, newdata = data.frame(hinge = hinge_values))
-# predictions <- data.frame(hinge = hinge_values, length = predicted_length)
 
 # Plot the data and the fitted model curve
 ggplot(hinge_length) +
   aes(x = hinge, y = length)+
   geom_point() +aes(x = hinge, y = length)+
   # geom_line(data = predictions, aes(x = hinge, y = length), color = "red") +
-    geom_smooth(method = "lm", formula = y ~ log(x), se = TRUE, color = "black")+
+    # geom_smooth(method = "lm", formula = y ~ log(x), se = TRUE, color = "black")+
   labs(x = "Hinge in mm", y = "Length in mm", title = "Hinge to Length Model Fit")
 
 
@@ -130,7 +109,7 @@ ggplot(hinge_length) +
 # 
 # Brief_Res <- Brief %>%
 #   mutate(growthCurve = Sinf * (1 - exp(-K * (Brief$length + t0)))) %>%
-#   mutate(residuals = hinge - growthCurve) 
+#   mutate(residuals = hinge - growthCurve)
 # 
 # GrowthLine <- tibble("length"= seq(0,max(Brief$age,na.rm = TRUE),by=0.05),
 #                          "growthcurve"= Sinf * (1 - exp(-K * (length + t0))))

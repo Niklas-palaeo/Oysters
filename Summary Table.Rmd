@@ -46,13 +46,14 @@ hinge_summary <- summary(Brief_Res$hinge)
 # Create a table
 table_data <- data.frame(
   Variable = c("Age", "Length", "Hinge"),
-  Minimum = c(age_summary["Min."], length_summary["Min."], hinge_summary["Min."]),
-  `1st Quartile` = c(age_summary["1st Qu."], length_summary["1st Qu."], hinge_summary["1st Qu."]),
-  Median = c(age_summary["Median"], length_summary["Median"], hinge_summary["Median"]),
-  Mean = c(age_summary["Mean"], length_summary["Mean"], hinge_summary["Mean"]),
-  `3rd Quartile` = c(age_summary["3rd Qu."], length_summary["3rd Qu."], hinge_summary["3rd Qu."]),
-  Maximum = c(age_summary["Max."], length_summary["Max."], hinge_summary["Max."])
+  Minimum = round(c(age_summary["Min."], length_summary["Min."], hinge_summary["Min."]), 1),
+  `1st Quartile` = round(c(age_summary["1st Qu."], length_summary["1st Qu."], hinge_summary["1st Qu."]), 1),
+  Median = round(c(age_summary["Median"], length_summary["Median"], hinge_summary["Median"]), 1),
+  Mean = round(c(age_summary["Mean"], length_summary["Mean"], hinge_summary["Mean"]), 1),
+  `3rd Quartile` = round(c(age_summary["3rd Qu."], length_summary["3rd Qu."], hinge_summary["3rd Qu."]), 1),
+  Maximum = round(c(age_summary["Max."], length_summary["Max."], hinge_summary["Max."]), 1)
 )
+
 
 # Convert table to markdown
 markdown_table <- knitr::kable(table_data, format = "markdown")
