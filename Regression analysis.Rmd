@@ -712,6 +712,7 @@ Hjarnø_Sund %>%
   geom_smooth(aes(group=1),col="grey85")+
   geom_boxplot(varwidth = TRUE,alpha=0.7)+
   # geom_point(alpha=0.6,position = position_dodge(0.3))+
+  # annotate("rect"
   scale_fill_manual(values = c(viridis_pal()(4)[3], viridis_pal()(4)[3])) +
   scale_color_manual(values = c(viridis_pal()(4)[3], viridis_pal()(4)[3])) +
   theme_cowplot() +
