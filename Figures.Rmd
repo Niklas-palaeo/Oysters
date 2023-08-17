@@ -173,105 +173,105 @@ F1A/F1B+plot_annotation(tag_levels = "A",title = "Number of successful records")
 # Significance tests at sites and Periods
 
 ```{r eval=FALSE, include=FALSE}
-#Periods
-## hinge
-### test
-Brief %>%   rstatix::pairwise_wilcox_test(hinge ~ cultural_epoch)
-
-### means
-Brief %>% group_by(cultural_epoch) %>% summarise(hinge=mean(hinge,na.rm = TRUE))
-
-## age
-### test
-Brief %>%   rstatix::pairwise_wilcox_test(age ~ cultural_epoch)
-### means
-Brief %>% group_by(cultural_epoch) %>% summarise(age=mean(age,na.rm = TRUE))
-
-## residuals
-### test
-Brief_Res %>%   rstatix::pairwise_wilcox_test(residuals ~ cultural_epoch)
-### means
-Brief_Res %>% group_by(cultural_epoch) %>% summarise(residuals=mean(residuals,na.rm = TRUE))
-
-# Sites
-## Hinge
-Brief %>%   
-  filter(site=="FHM 4383 Krabbesholm II") %>% 
-  rstatix::pairwise_wilcox_test(hinge ~ cultural_epoch)
-
-Brief %>%   
-  filter(site=="FHM 2911 Bjørnsholm") %>% 
-  rstatix::pairwise_wilcox_test(hinge ~ cultural_epoch)
-
-Brief %>%   
-  filter(site=="FHM 4014 Havnø") %>% 
-  rstatix::pairwise_wilcox_test(hinge ~ cultural_epoch)
-
-Brief %>%   
-  filter(site=="MFG 158/99 Eskilsø SØ") %>% 
-  rstatix::pairwise_wilcox_test(hinge ~ cultural_epoch)
-
-
-Brief %>%   
-  filter(site=="FHM 2911 Norsminde") %>% 
-  rstatix::pairwise_wilcox_test(hinge ~ cultural_epoch)
-
-Brief %>%   
-  filter(site=="ÅHM 6814 Visborg") %>% 
-  rstatix::pairwise_wilcox_test(hinge ~ cultural_epoch)
-
-
-## Age
-Brief %>%   
-  filter(site=="FHM 4383 Krabbesholm II") %>% 
-  rstatix::pairwise_wilcox_test(age ~ cultural_epoch)
-
-Brief %>%   
-  filter(site=="FHM 2911 Bjørnsholm") %>% 
-  rstatix::pairwise_wilcox_test(age ~ cultural_epoch)
-
-Brief %>%   
-  filter(site=="FHM 4014 Havnø") %>% 
-  rstatix::pairwise_wilcox_test(age ~ cultural_epoch)
-
-Brief %>%   
-  filter(site=="MFG 158/99 Eskilsø SØ") %>% 
-  rstatix::pairwise_wilcox_test(age ~ cultural_epoch)
-
-
-Brief %>%   
-  filter(site=="FHM 2911 Norsminde") %>% 
-  rstatix::pairwise_wilcox_test(age ~ cultural_epoch)
-
-Brief %>%   
-  filter(site=="ÅHM 6814 Visborg") %>% 
-  rstatix::pairwise_wilcox_test(age ~ cultural_epoch)
-
-## Residuals
-Brief_Res %>%   
-  filter(site=="FHM 4383 Krabbesholm II") %>% 
-  rstatix::pairwise_wilcox_test(residuals ~ cultural_epoch)
-
-Brief_Res %>%   
-  filter(site=="FHM 2911 Bjørnsholm") %>% 
-  rstatix::pairwise_wilcox_test(residuals ~ cultural_epoch)
-
-Brief_Res %>%   
-  filter(site=="FHM 4014 Havnø") %>% 
-  rstatix::pairwise_wilcox_test(residuals ~ cultural_epoch)
-
-Brief_Res %>%   
-  filter(site=="MFG 158/99 Eskilsø SØ") %>% 
-  rstatix::pairwise_wilcox_test(residuals ~ cultural_epoch)
-
-
-Brief_Res %>%   
-  filter(site=="FHM 2911 Norsminde") %>% 
-  rstatix::pairwise_wilcox_test(residuals ~ cultural_epoch)
-
-Brief_Res %>%   
-  filter(site=="ÅHM 6814 Visborg") %>% 
-  rstatix::pairwise_wilcox_test(residuals ~ cultural_epoch)
+# #Periods
+# ## hinge
+# ### test
+# Brief %>%   rstatix::pairwise_wilcox_test(hinge ~ cultural_epoch)
+# 
+# ### means
+# Brief %>% group_by(cultural_epoch) %>% summarise(hinge=mean(hinge,na.rm = TRUE))
+# 
+# ## age
+# ### test
+# Brief %>%   rstatix::pairwise_wilcox_test(age ~ cultural_epoch)
+# ### means
+# Brief %>% group_by(cultural_epoch) %>% summarise(age=mean(age,na.rm = TRUE))
+# 
+# ## residuals
+# ### test
+# Brief_Res %>%   rstatix::pairwise_wilcox_test(residuals ~ cultural_epoch)
+# ### means
+# Brief_Res %>% group_by(cultural_epoch) %>% summarise(residuals=mean(residuals,na.rm = TRUE))
+# 
+# # Sites
+# ## Hinge
+# Brief %>%   
+#   filter(site=="FHM 4383 Krabbesholm II") %>% 
+#   rstatix::pairwise_wilcox_test(hinge ~ cultural_epoch)
+# 
+# Brief %>%   
+#   filter(site=="FHM 2911 Bjørnsholm") %>% 
+#   rstatix::pairwise_wilcox_test(hinge ~ cultural_epoch)
+# 
+# Brief %>%   
+#   filter(site=="FHM 4014 Havnø") %>% 
+#   rstatix::pairwise_wilcox_test(hinge ~ cultural_epoch)
+# 
+# Brief %>%   
+#   filter(site=="MFG 158/99 Eskilsø SØ") %>% 
+#   rstatix::pairwise_wilcox_test(hinge ~ cultural_epoch)
+# 
+# 
+# Brief %>%   
+#   filter(site=="FHM 2911 Norsminde") %>% 
+#   rstatix::pairwise_wilcox_test(hinge ~ cultural_epoch)
+# 
+# Brief %>%   
+#   filter(site=="ÅHM 6814 Visborg") %>% 
+#   rstatix::pairwise_wilcox_test(hinge ~ cultural_epoch)
+# 
+# 
+# ## Age
+# Brief %>%   
+#   filter(site=="FHM 4383 Krabbesholm II") %>% 
+#   rstatix::pairwise_wilcox_test(age ~ cultural_epoch)
+# 
+# Brief %>%   
+#   filter(site=="FHM 2911 Bjørnsholm") %>% 
+#   rstatix::pairwise_wilcox_test(age ~ cultural_epoch)
+# 
+# Brief %>%   
+#   filter(site=="FHM 4014 Havnø") %>% 
+#   rstatix::pairwise_wilcox_test(age ~ cultural_epoch)
+# 
+# Brief %>%   
+#   filter(site=="MFG 158/99 Eskilsø SØ") %>% 
+#   rstatix::pairwise_wilcox_test(age ~ cultural_epoch)
+# 
+# 
+# Brief %>%   
+#   filter(site=="FHM 2911 Norsminde") %>% 
+#   rstatix::pairwise_wilcox_test(age ~ cultural_epoch)
+# 
+# Brief %>%   
+#   filter(site=="ÅHM 6814 Visborg") %>% 
+#   rstatix::pairwise_wilcox_test(age ~ cultural_epoch)
+# 
+# ## Residuals
+# Brief_Res %>%   
+#   filter(site=="FHM 4383 Krabbesholm II") %>% 
+#   rstatix::pairwise_wilcox_test(residuals ~ cultural_epoch)
+# 
+# Brief_Res %>%   
+#   filter(site=="FHM 2911 Bjørnsholm") %>% 
+#   rstatix::pairwise_wilcox_test(residuals ~ cultural_epoch)
+# 
+# Brief_Res %>%   
+#   filter(site=="FHM 4014 Havnø") %>% 
+#   rstatix::pairwise_wilcox_test(residuals ~ cultural_epoch)
+# 
+# Brief_Res %>%   
+#   filter(site=="MFG 158/99 Eskilsø SØ") %>% 
+#   rstatix::pairwise_wilcox_test(residuals ~ cultural_epoch)
+# 
+# 
+# Brief_Res %>%   
+#   filter(site=="FHM 2911 Norsminde") %>% 
+#   rstatix::pairwise_wilcox_test(residuals ~ cultural_epoch)
+# 
+# Brief_Res %>%   
+#   filter(site=="ÅHM 6814 Visborg") %>% 
+#   rstatix::pairwise_wilcox_test(residuals ~ cultural_epoch)
 
 ```
 
@@ -393,7 +393,7 @@ Res <-
   xlab("Age")+
   ylab("Residuals")
 
-GrowthCurve+Res
+# GrowthCurve+Res
 
 
 
@@ -486,7 +486,7 @@ Fig2cbelow <-
   # ggtitle("", subtitle = "by site")+
 
   theme(legend.position = "none")+#, 
-        # axis.title.y=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank())+
+        axis.title.y=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank())+
     stat_compare_means(method = "wilcox.test",label.x = 0,
                      label.y = 15,paired=FALSE,label = "p.signif")+
   coord_flip()+
@@ -498,9 +498,9 @@ Fig2cbelow <-
 ```{r}
 # (Fig2atop+Fig2btop+Fig2ctop)/(Fig2abelow+Fig2bbelow+Fig2cbelow)+plot_annotation(tag_levels = "A")+plot_layout(heights = c(0.1,0.9))
 
-(Fig2atop/Fig2abelow+plot_layout(heights = c(1,9)))|(Fig2btop/Fig2bbelow+plot_layout(heights = c(1,9)))|(Fig2ctop/Fig2cbelow+plot_layout(heights = c(1,9)))+plot_annotation(tag_levels = "A")
+Fig2 <- ((Fig2atop+labs(tag = "A"))/Fig2abelow+plot_layout(heights = c(1,9)))|((Fig2btop+labs(tag = "B"))/Fig2bbelow+plot_layout(heights = c(1,9)))|((Fig2ctop+labs(tag = "C"))/Fig2cbelow+plot_layout(heights = c(1,9)))+plot_annotation(tag_levels = "A")
 
-
+ggsave(plot = Fig2,filename = here("Plots","Figure2.png"),width = 15,height = 8)
 ```
 
 
@@ -574,7 +574,7 @@ p <- p1|p2+plot_layout(widths = c(3,1))
 
 # p <- ((GrowthCurve+labs(tag = "A"))/(Res+labs(tag = "B")))| plot_spacer()|((Fig2ctop+labs(title="",tag="C")+theme(axis.text.x = element_text(size = 10), axis.title.x= element_text(size=12)))/(Fig2cbelow+labs(tag="D")+ theme(axis.text.y = element_text(size = 10),axis.text.x = element_text(size = 10), axis.title.x= element_text(size=12)))+plot_layout(heights = c(1,9)))+plot_layout(widths = c(1,2))
 
-ggsave(plot = p,filename = here("Plots","Figure3_B.png"),width = 9,height = 8)
+ggsave(plot = p,filename = here("Plots","Figure3_B.png"),width = 15,height = 8)
 
 ```
 

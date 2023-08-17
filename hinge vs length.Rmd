@@ -30,7 +30,40 @@ hinge_length <- read.csv(here("data","hinge_vs_total_length.csv")) %>%
   mutate(site=if_else(site=="Havn\xbf","Havnø",site)) %>% 
   add_row(site="FAKE_SITE_00",hinge=0.01,length=0.1)
 
+model <- nls(length ~ I(b*log(hinge)), data = hinge_length, start = list(b = 0.5))
+
+  b <- coef(model)[1]
+  
+  x <- seq(1, 20, length.out = 100)
+
+  est_length <- b * log(x)
+
+
 ```
+
+
+# Fig S3
+
+```{r}
+
+S3 <-
+  hinge_length %>% 
+  filter(site!="FAKE_SITE_00") %>% 
+  ggplot() +
+    aes(x = hinge, y = length)+
+    geom_point() +
+    geom_line(data = cbind(x,est_length) %>% as_tibble(), aes(x = x, y = est_length), color = "firebrick") +
+    # geom_smooth(method = "lm", formula = y ~ log(x), se = TRUE, color = "black")+
+    labs(x = "Hinge in mm", y = "Length in mm", title = "Hinge to length model fit")
+
+
+ggsave(plot = S3,filename = here("Plots","FigureS3.png"),width = 9,height = 8)
+```
+
+
+
+
+
 
 # Plot
 ```{r}
@@ -89,7 +122,7 @@ Havnø_length_lm <- hinge_length %>%
 
 # Using nls() instead
 # Define the model
-model <- nls(length ~ I(b*log(hinge)), data = hinge_length, start = list(b = 5))
+# model <- nls(length ~ I(b*log(hinge)), data = hinge_length, start = list(b = 5))
 
 
 
@@ -98,7 +131,7 @@ ggplot(hinge_length) +
   aes(x = hinge, y = length)+
   geom_point() +aes(x = hinge, y = length)+
   # geom_line(data = predictions, aes(x = hinge, y = length), color = "red") +
-    # geom_smooth(method = "lm", formula = y ~ log(x), se = TRUE, color = "black")+
+  # geom_smooth(method = "lm", formula = y ~ log(x), se = TRUE, color = "black")+
   labs(x = "Hinge in mm", y = "Length in mm", title = "Hinge to Length Model Fit")
 
 

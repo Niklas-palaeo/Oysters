@@ -1,0 +1,73 @@
+---
+title: "Template Title"
+author: "Niklas Hausmann"
+date: "Today"
+output: pdf_document
+---
+
+# Libraries 
+```{r Libraries,echo=FALSE,message = FALSE,warning = FALSE}
+knitr::opts_chunk$set(echo=FALSE,message = FALSE,warning = FALSE)
+
+{
+  pacman::p_load(
+    here,
+    janitor,
+    tidyverse,
+    cowplot,ggx,
+    patchwork,
+    RColorBrewer) 
+  
+  theme_set(theme_cowplot())
+}
+```
+
+# Data
+
+```{r}
+Brief_Res <- readRDS(here("data","Brief_res.rds"))
+
+Raw_df <- read_csv(here("Data","Oyster_data.csv")) %>% 
+  clean_names() %>% 
+  mutate(age=as.numeric(age))
+
+Raw_df %>% 
+  filter(is.na(hinge_mm))
+
+Brief <- Raw_df %>%
+  select(
+    museum_site_prefix,
+    site_name,
+    cultural_epoch,
+    grid_square,
+    level,
+    plan,
+    site_ref_and_shell_no,
+    layer,
+    hinge_mm,
+    age_readable,
+    age
+  ) %>%
+  rename(hinge=hinge_mm) %>% 
+  filter(cultural_epoch == "Funnel Beaker" |
+           cultural_epoch == "Ertebølle")
+
+Brief %>% 
+    filter(age_readable==TRUE) 
+
+Brief_Res %>% 
+    # filter(!is.na(hinge)) %>% 
+      # filter(site=="FHM 4383 Krabbesholm II") %>% 
+  group_by(site) %>%
+  summarise(n_hinge = sum(!is.na(hinge)),
+            n_age = sum(!is.na(age))) %>% 
+  # mutate(site = stringr::str_remove(site, "^[^[:space:]]+\\s+[^[:space:]]+\\s+")) %>%
+  arrange(site) %>% 
+  adorn_totals("row")
+  
+  knitr::kable(format = "markdown")
+
+```
+
+
+

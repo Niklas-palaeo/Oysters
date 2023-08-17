@@ -1,0 +1,109 @@
+---
+title: "Template Title"
+author: "Niklas Hausmann"
+date: "Today"
+output: pdf_document
+---
+
+# Libraries 
+```{r Libraries,echo=FALSE,message = FALSE,warning = FALSE}
+knitr::opts_chunk$set(echo=FALSE,message = FALSE,warning = FALSE)
+
+{
+  pacman::p_load(
+    here,
+    janitor,
+    tidyverse,
+    cowplot,ggx,
+    patchwork,
+    RColorBrewer) 
+  
+  theme_set(theme_cowplot())
+}
+```
+
+# Data
+
+```{r}
+Brief_Res <- readRDS(here("data","Brief_res.rds"))
+```
+
+# Plots
+```{r}
+Size <- Brief %>% 
+  filter(site=="FHM 4383 Krabbesholm II") %>% 
+  # na.omit() %>% 
+  ggplot()+
+  aes(x = site, y = hinge, colour = cultural_epoch) +
+  geom_jitter(alpha=0.7, width = 0.1, size=1)+
+  geom_boxplot(
+    aes(fill = cultural_epoch, colour = cultural_epoch),
+    outlier.shape = NA,
+    alpha = 0.3,
+    position = position_nudge(x =  -0.5),
+    size = 0.5,
+    width=0.3) +
+  # scale_x_discrete(limits = levels(CleanSites %>% select(Periods) %>% filter(Periods=="Funnel Beaker"|Periods=="Ertebølle")))+
+  geom_flat_violin(aes(fill=cultural_epoch),position = position_nudge(x = .5),alpha=0.3)+
+  scale_colour_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3]))+
+  ylab("mm")+xlab("")+
+  ylim(0,NA)+
+  ggtitle("", subtitle="size") +
+  theme_cowplot(20)+
+  coord_flip() + theme(legend.position = "none")+ 
+   stat_compare_means(method = "wilcox.test",label.x = 0,
+                     label.y = 20,paired=FALSE,label = "p.signif")
+
+Age <- Brief %>% 
+  filter(site=="FHM 4383 Krabbesholm II") %>% 
+  # na.omit() %>% 
+  ggplot()+
+  aes(x = site, y = age, colour = cultural_epoch) +
+  geom_jitter(alpha=0.7, width = 0.1, size=1)+
+  geom_boxplot(
+    aes(fill = cultural_epoch, colour = cultural_epoch),
+    outlier.shape = NA,
+    alpha = 0.3,
+    position = position_nudge(x = -0.5),
+    size = 0.5,
+    width=0.3) +
+  # scale_x_discrete(limits = levels(CleanSites %>% select(Periods) %>% filter(Periods=="Funnel Beaker"|Periods=="Ertebølle")))+
+  geom_flat_violin(aes(fill=cultural_epoch),position = position_nudge(x = .5),alpha=0.3)+
+  scale_colour_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3]))+
+  ylab("mm")+xlab("")+
+  ylim(0,NA)+
+  ggtitle("", subtitle="age") +
+  theme_cowplot(20)+
+  coord_flip() + theme(legend.position = "none")+ 
+   stat_compare_means(method = "wilcox.test",label.x = 0,
+                     label.y = 20,paired=FALSE,label = "p.signif")
+
+
+
+Residuals <-
+  Brief_Res %>%
+    filter(site=="FHM 4383 Krabbesholm II") %>% 
+  ggplot(aes(x = site, y = residuals, fill = cultural_epoch,col=cultural_epoch)) +
+  geom_boxplot(varwidth = TRUE,alpha=0.7)+
+  geom_point(alpha=0.6,position = position_dodge(0.3))+
+    geom_flat_violin(aes(fill=cultural_epoch),position = position_nudge(x = .5),alpha=0.3)+
+
+  scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  scale_color_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  theme_cowplot(20) +
+  ggtitle("", subtitle = "residuals")+
+
+  theme(legend.position = "none")+
+    stat_compare_means(method = "wilcox.test",label.x = 0,
+                     label.y = 20,paired=FALSE,label = "p.signif")+
+  coord_flip()+
+  xlab("")+
+  ylab("")
+
+
+Size/Age/Residuals
+
+```
+
