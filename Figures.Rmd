@@ -172,7 +172,7 @@ F1A/F1B+plot_annotation(tag_levels = "A",title = "Number of successful records")
 
 # Significance tests at sites and Periods
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 #Periods
 ## hinge
 ### test
@@ -302,7 +302,7 @@ Brief %>%
   scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3]))+
   ylab("mm")+xlab("")+
   ylim(0,40)+
-  ggtitle("Size Distributions", subtitle=paste0("by period")) +
+  ggtitle("Size Distributions")+#, subtitle=paste0("by period")) +
   theme_cowplot(20)+
   coord_flip() + theme(legend.position = "none")
 
@@ -325,13 +325,13 @@ Brief %>%
   scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3]))+
   ylab("mm")+xlab("")+
   ylim(0,40)+
-  ggtitle("", subtitle="by site") +
+  # ggtitle("", subtitle="by site") +
   theme_cowplot(20)+
   coord_flip() + theme(legend.position = "none")+ 
    stat_compare_means(method = "wilcox.test",label.x = 0,
                      label.y = 40,paired=FALSE,label = "p.signif")
 
-Fig2atop/Fig2abelow+plot_layout(heights=c(0.1,0.9))+plot_annotation(tag_levels = "A")
+# Fig2atop/Fig2abelow+plot_layout(heights=c(0.1,0.9))+plot_annotation(tag_levels = "A")
 
 
 ```
@@ -368,7 +368,7 @@ GrowthCurve <-
     ggtitle("Growth Curve") + 
     # gghighlight(grepl("Hjarnø Sund", site, fixed = TRUE))+
   theme(legend.position = c(0.5, 0.2))+
-  xlab("Age")
+  xlab("Age")+ylab("Hinge")
 
 Res <-
   Brief_Res %>%
@@ -420,7 +420,9 @@ Brief_Res %>%
   scale_colour_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
   scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3]))+
   ylab("years")+xlab("")+
-  ggtitle("Age ", subtitle=paste0("by period")) +
+  ggtitle("Age ")+#, subtitle=paste0("by period")) + 
+  theme(legend.position = "none", 
+        axis.title.y=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank())+
   theme_cowplot(20)+
   coord_flip() + theme(legend.position = "none")
 
@@ -432,10 +434,11 @@ Fig2bbelow <-
   scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
   scale_color_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
   theme_cowplot(20) +
-  ggtitle("", subtitle = "by site")+
-  theme(legend.position = "none")+
+  # ggtitle("", subtitle = "by site")+
+   theme(legend.position = "none", 
+        axis.title.y=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank())+
     stat_compare_means(method = "wilcox.test",label.x = 0,
-                     label.y = 15,paired=FALSE,label = "p.signif")+
+                     label.y = 25,paired=FALSE,label = "p.signif")+
   coord_flip()+
   xlab("")+
   ylab("years")
@@ -465,8 +468,10 @@ Brief_Res %>%
   geom_flat_violin(aes(fill=cultural_epoch),position = position_nudge(x = .0),alpha=0.3)+
   scale_colour_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
   scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3]))+
-  ylab("mm")+xlab("")+
-  ggtitle("Residuals ", subtitle=paste0("by period")) +
+  ylab("mm")+xlab("")+ 
+  theme(legend.position = "none", 
+        axis.title.y=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank())+
+  ggtitle("Residuals ")+#, subtitle=paste0("by period")) +
   theme_cowplot(20)+
   coord_flip() + theme(legend.position = "none")
 
@@ -478,8 +483,10 @@ Fig2cbelow <-
   scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
   scale_color_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
   theme_cowplot(20) +
-  ggtitle("", subtitle = "by site")+
-  theme(legend.position = "none")+
+  # ggtitle("", subtitle = "by site")+
+
+  theme(legend.position = "none")+#, 
+        # axis.title.y=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank())+
     stat_compare_means(method = "wilcox.test",label.x = 0,
                      label.y = 15,paired=FALSE,label = "p.signif")+
   coord_flip()+
@@ -489,7 +496,10 @@ Fig2cbelow <-
 
 # Figure 2
 ```{r}
-(Fig2atop+Fig2btop+Fig2ctop)/(Fig2abelow+Fig2bbelow+Fig2cbelow)+plot_annotation(tag_levels = "A")+plot_layout(heights = c(0.1,0.9))
+# (Fig2atop+Fig2btop+Fig2ctop)/(Fig2abelow+Fig2bbelow+Fig2cbelow)+plot_annotation(tag_levels = "A")+plot_layout(heights = c(0.1,0.9))
+
+(Fig2atop/Fig2abelow+plot_layout(heights = c(1,9)))|(Fig2btop/Fig2bbelow+plot_layout(heights = c(1,9)))|(Fig2ctop/Fig2cbelow+plot_layout(heights = c(1,9)))+plot_annotation(tag_levels = "A")
+
 
 ```
 
@@ -518,7 +528,7 @@ Brief %>%
   scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3]))+
   ylab("mm")+xlab("")+
   # ylim(0,40)+
-  ggtitle("Size Distributions", subtitle=paste0("by period")) +
+  ggtitle("Size Distributions")+#, subtitle=paste0("by period")) +
   theme_cowplot(20)+
   coord_flip() + theme(legend.position = "none")
 
@@ -542,7 +552,7 @@ Brief %>%
   scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3]))+
   ylab("length in mm")+xlab("")+
   # ylim(0,40)+
-  ggtitle("", subtitle="by site") +
+  # ggtitle("", subtitle="by site") +
   theme_cowplot(20)+
   coord_flip() + theme(legend.position = "none")+ 
    ggpubr::stat_compare_means(method = "wilcox.test",label.x = 0,
@@ -554,12 +564,227 @@ Fig2a2top/Fig2a2below+plot_layout(heights=c(0.1,0.9))+plot_annotation(tag_levels
 
 ```
 
+# Figure 3
+```{r}
+
+p1 <- ((GrowthCurve+labs(tag = "A"))/(Res+labs(tag = "B")))
+p2 <- ((Fig2ctop+labs(title="",tag="C")+theme(axis.text.x = element_text(size = 10),axis.text.y = element_text(size = 10), axis.title.x= element_text(size=12)))/(Fig2cbelow+labs(tag="D")+ theme(axis.text.y = element_text(size = 10),axis.text.x = element_text(size = 10), axis.title.x= element_text(size=12)))+plot_layout(heights = c(1,9)))
+
+p <- p1|p2+plot_layout(widths = c(3,1))
+
+# p <- ((GrowthCurve+labs(tag = "A"))/(Res+labs(tag = "B")))| plot_spacer()|((Fig2ctop+labs(title="",tag="C")+theme(axis.text.x = element_text(size = 10), axis.title.x= element_text(size=12)))/(Fig2cbelow+labs(tag="D")+ theme(axis.text.y = element_text(size = 10),axis.text.x = element_text(size = 10), axis.title.x= element_text(size=12)))+plot_layout(heights = c(1,9)))+plot_layout(widths = c(1,2))
+
+ggsave(plot = p,filename = here("Plots","Figure3_B.png"),width = 9,height = 8)
+
+```
+
+
+
+# Figure strats 
+## Site Data
+#### Krabbesholm
+```{r}
+
+Krabbesholm <- Brief_Res %>%
+  filter(site == "FHM 4383 Krabbesholm II") %>%
+  filter(grid_square=="104/100") %>% 
+  filter(age_readable == TRUE) %>%   
+  mutate(rate=hinge/age) %>%
+
+  mutate(layer = factor(level,
+                        levels = c("16",
+                                   "15",
+                                   "14",
+                                   "13",
+                                   "12",
+                                   "11",
+                                   "10",
+                                   "8",
+                                   "7",
+                                   "6",
+                                   "5",
+                                   "4",
+                                   "3",
+                                   "2"
+                                )
+                        )
+         )
+
+
+Krabbesholm_A <- 
+  Krabbesholm %>% 
+  ggplot(aes(x = layer, y = hinge, fill = cultural_epoch,col=cultural_epoch)) +
+  geom_smooth(aes(group=1),col="grey85")+
+  geom_boxplot(varwidth = TRUE,alpha=0.7)+
+  # geom_point(alpha=0.6,position = position_dodge(0.3))+
+  scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  scale_color_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  theme_cowplot() +
+  theme(legend.position = "none")+
+  coord_flip()+
+  ylim(0,NA)+
+  xlab("")+
+  ylab("Hinge size")
+
+
+
+Krabbesholm_B <- 
+  Krabbesholm %>% 
+  ggplot(aes(x = layer, y = age, fill = cultural_epoch,col=cultural_epoch)) +
+    geom_smooth(aes(group=1),col="grey85")+
+  geom_hline(yintercept = 0, alpha = 0.5)+ 
+  geom_boxplot(varwidth = TRUE,alpha=0.7)+
+  # geom_point(alpha=0.6,position = position_dodge(0.3))+
+  scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  scale_color_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  theme_cowplot() +
+  # ggtitle("", subtitle = "Age")+
+  theme(legend.position = "none")+
+  coord_flip()+
+  ylim(0,20)+
+  ggeasy::easy_remove_y_axis()+
+  xlab("")+
+  ylab("Age")
+
+
+Krabbesholm_C <- 
+  Krabbesholm %>% 
+  ggplot(aes(x = layer, y = residuals, fill = cultural_epoch,col=cultural_epoch)) +
+    geom_smooth(aes(group=1),col="grey85")+
+  geom_hline(yintercept = 0, alpha = 0.5)+ 
+  geom_boxplot(varwidth = TRUE,alpha=0.7)+
+  # geom_point(alpha=0.6,position = position_dodge(0.3))+
+  scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  scale_color_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  theme_cowplot() +
+  # ggtitle("", subtitle = "Residuals")+
+  theme(legend.position = "none")+
+  coord_flip()+
+  ggeasy::easy_remove_y_axis()+
+  xlab("")+
+  ylab("Residuals")
+
+Krabbesholm_D <- 
+  Krabbesholm %>% 
+  ggplot(aes(x = layer, y = rate, fill = cultural_epoch,col=cultural_epoch)) +
+    geom_smooth(aes(group=1),col="grey85")+
+  geom_hline(yintercept = 0, alpha = 0.5)+ 
+  geom_boxplot(varwidth = TRUE,alpha=0.7)+
+  # geom_point(alpha=0.6,position = position_dodge(0.3))+
+  scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  scale_color_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  theme_cowplot() +
+  # ggtitle("", subtitle = "Rate")+
+  theme(legend.position = "none")+
+  coord_flip()+
+  ggeasy::easy_remove_y_axis()+
+  xlab("")+
+  ylab("Rate")
+
+
+Krabbesholm_A+Krabbesholm_B+Krabbesholm_C+plot_annotation(tag_levels = "A", title = "FHM 4383 Krabbesholm")
 
 
 
 
+
+#
+
+
+```
+### Eskilsø
+```{r}
+# residuals stay the same but age changes.
+### NOT SURE WHAT IS UP WITH LAYER A, MAYBE NEOLITHIC? ###
+
+
+Eskilsø  <- Brief_Res %>%
+  filter(site == "MFG 158/99 Eskilsø SØ") %>% 
+  filter(age_readable == TRUE) %>% 
+  mutate(layer = factor(layer,
+                        levels = c(
+                          "G layer 6",
+                          "A layer",
+                          "E layer",
+                          "D layer 12",
+                          "F layer 2",
+                          "C layer 11",
+                          "B layer 10+14"
+                        )))
+
+
+Eskilsø_A <- 
+Eskilsø %>%
+  ggplot(aes(x = layer, y = hinge, fill = cultural_epoch,col=cultural_epoch)) +
+  geom_smooth(aes(group=1),col="grey85")+
+  geom_boxplot(varwidth = TRUE,alpha=0.7)+
+  # geom_point(alpha=0.6,position = position_dodge(0.3))+
+  scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  scale_color_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  theme_cowplot() +
+  # ggtitle("MFG 158/99Eskilsø Sø", subtitle = "Hinge")+
+  theme(legend.position = "none")+
+  coord_flip()+
+  ylim(0,NA)+
+  xlab("")+
+  ylab("Hinge size")
+
+
+Eskilsø_B <- 
+Eskilsø %>%
+  ggplot(aes(x = layer, y = age, fill = cultural_epoch,col=cultural_epoch)) +
+    geom_smooth(aes(group=1),col="grey85")+
+  geom_hline(yintercept = 0, alpha = 0.5)+ 
+  geom_boxplot(varwidth = TRUE,alpha=0.7)+
+  # geom_point(alpha=0.6,position = position_dodge(0.3))+
+  scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  scale_color_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  theme_cowplot() +
+  # ggtitle("", subtitle = "Age")+
+  theme(legend.position = "none")+
+  coord_flip()+
+  ggeasy::easy_remove_y_axis()+
+  xlab("")+
+  ylab("Age")
+
+Eskilsø_C <- 
+Eskilsø %>%
+  ggplot(aes(x = layer, y = residuals, fill = cultural_epoch,col=cultural_epoch)) +
+    geom_smooth(aes(group=1),col="grey85")+
+  geom_hline(yintercept = 0, alpha = 0.5)+ 
+  geom_boxplot(varwidth = TRUE,alpha=0.7)+
+  # geom_point(alpha=0.6,position = position_dodge(0.3))+
+  scale_fill_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  scale_color_manual(values = c(viridis_pal()(4)[2], viridis_pal()(4)[3])) +
+  theme_cowplot() +
+  # ggtitle("", subtitle = "Residuals")+
+  theme(legend.position = "none")+
+  coord_flip()+
+  ggeasy::easy_remove_y_axis()+
+  xlab("")+
+  ylab("Residuals")
+
+Eskilsø_A+Eskilsø_B+Eskilsø_C+plot_annotation(tag_levels = "A",title = "MFG 158/99Eskilsø Sø")
+
+```
+
+## Final Figure
+```{r}
+
+p1 <- Krabbesholm_A+ggtitle("FHM 4383 Krabbesholm")+Krabbesholm_B+Krabbesholm_C#+plot_annotation(title = "FHM 4383 Krabbesholm")
+p2 <- Eskilsø_A+ggtitle("MFG 158/99Eskilsø Sø")+Eskilsø_B+Eskilsø_C#+plot_annotation(title = "MFG 158/99Eskilsø Sø")
+
+p <- (p1)/(p2)+plot_annotation(tag_levels = "A")& theme(plot.tag = element_text(size = 10))
+
+ggsave(plot = p,filename = here("Plots","Figure4.png"),width = 10,height = 8)
+
+```
+
+
+
+
+```{r Residuals by multi-period Site, eval=FALSE, include=FALSE}
 # Figure 4 MIGHT NOT MAKE THIS FIGURE
-```{r Residuals by multi-period Site}
 
 
 Fig4A <- 
@@ -654,7 +879,6 @@ Fig4F <-
 
 
 (Fig4A+Fig4B+Fig4C)/(Fig4D+Fig4E+Fig4F)+plot_annotation(tag_levels = "A")
-
 
 ```
 

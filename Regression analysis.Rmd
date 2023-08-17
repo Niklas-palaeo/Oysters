@@ -968,6 +968,18 @@ Norsminde %>%
 ```
 
 
+# Figure strats to be included in figure.rmd
+
+```{r}
+
+p1 <- Krabbesholm_A+ggtitle("FHM 4383 Krabbesholm")+Krabbesholm_B+Krabbesholm_C#+plot_annotation(title = "FHM 4383 Krabbesholm")
+p2 <- Eskilsø_A+ggtitle("MFG 158/99Eskilsø Sø")+Eskilsø_B+Eskilsø_C#+plot_annotation(title = "MFG 158/99Eskilsø Sø")
+
+(p1)/(p2)+plot_annotation(tag_levels = "A")& theme(plot.tag = element_text(size = 10))
+
+```
+
+
 
 
 ## Layer-based mean data (for Multiple Regression)

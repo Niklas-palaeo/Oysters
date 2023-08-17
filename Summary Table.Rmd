@@ -31,6 +31,16 @@ source(here("HingeToLength.R"))
 
 Brief_Res <- readRDS(here("data","Brief_res.rds")) %>% 
                 mutate(length=hingetolength(hinge))
+
+
+# Test fit
+Brief_Res %>% ggplot() +
+  aes(hinge, length) +
+  geom_point() +
+  geom_smooth() +
+  coord_fixed() + ylim(0, NA) +
+  geom_point(data = hinge_length,col="red",alpha=0.2)
+
 ```
 
 
@@ -40,18 +50,18 @@ Brief_Res <- readRDS(here("data","Brief_res.rds")) %>%
 ```{r}
 # Extract statistical values
 age_summary <- summary(Brief_Res$age)
-length_summary <- summary(Brief_Res$length)
+# length_summary <- summary(Brief_Res$length)
 hinge_summary <- summary(Brief_Res$hinge)
 
 # Create a table
 table_data <- data.frame(
   Variable = c("Age", "Length", "Hinge"),
-  Minimum = round(c(age_summary["Min."], length_summary["Min."], hinge_summary["Min."]), 1),
-  `1st Quartile` = round(c(age_summary["1st Qu."], length_summary["1st Qu."], hinge_summary["1st Qu."]), 1),
-  Median = round(c(age_summary["Median"], length_summary["Median"], hinge_summary["Median"]), 1),
-  Mean = round(c(age_summary["Mean"], length_summary["Mean"], hinge_summary["Mean"]), 1),
-  `3rd Quartile` = round(c(age_summary["3rd Qu."], length_summary["3rd Qu."], hinge_summary["3rd Qu."]), 1),
-  Maximum = round(c(age_summary["Max."], length_summary["Max."], hinge_summary["Max."]), 1)
+  Minimum = round(c(age_summary["Min."], hingetolength(hinge_summary["Min."]), hinge_summary["Min."]), 1),
+  `1st Quartile` = round(c(age_summary["1st Qu."], hingetolength(hinge_summary["1st Qu."]), hinge_summary["1st Qu."]), 1),
+  Median = round(c(age_summary["Median"], hingetolength(hinge_summary["Median"]), hinge_summary["Median"]), 1),
+  Mean = round(c(age_summary["Mean"], hingetolength(hinge_summary["Mean"]), hinge_summary["Mean"]), 1),
+  `3rd Quartile` = round(c(age_summary["3rd Qu."], hingetolength(hinge_summary["3rd Qu."]), hinge_summary["3rd Qu."]), 1),
+  Maximum = round(c(age_summary["Max."], hingetolength(hinge_summary["Max."]), hinge_summary["Max."]), 1)
 )
 
 
